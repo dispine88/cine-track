@@ -1,4 +1,3 @@
-# seed.py
 from db import Genre, Review, Title, get_session, init_db
 
 

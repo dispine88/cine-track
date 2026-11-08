@@ -1,17 +1,17 @@
-# Секреты и настройки
+# Secrets and settings
 .env
 settings.json
 
-# Базы данных
+# Databases
 *.db
 *.sqlite
 
-# Кэш и виртуальные окружения
+# Cache and virtual environments
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 
-# Системный мусор
+# System files
 .DS_Store
 Thumbs.db

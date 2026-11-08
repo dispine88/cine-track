@@ -1,11 +1,11 @@
-/* Основное окно */
+/* Main Window */
 QMainWindow, QWidget {
     background-color: #121212;
     color: #e0e0e0;
     font-family: "Segoe UI", "Noto Sans", sans-serif;
 }
 
-/* Список файлов */
+/* List Widget */
 QListWidget {
     background-color: #1e1e1e;
     border: none;
@@ -22,7 +22,7 @@ QListWidget::item:selected {
     border-radius: 6px;
 }
 
-/* Кнопки */
+/* Buttons */
 QPushButton {
     background-color: #3700b3;
     color: white;
@@ -38,7 +38,7 @@ QPushButton:disabled {
     color: #777;
 }
 
-/* Поля ввода */
+/* Input Fields */
 QLineEdit {
     background-color: #1e1e1e;
     color: white;
@@ -47,7 +47,7 @@ QLineEdit {
     padding: 5px;
 }
 
-/* Меню по правой кнопке */
+/* Context Menu */
 QMenu {
     background-color: #1e1e1e;
     color: white;
