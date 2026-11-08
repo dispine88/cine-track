@@ -16,7 +16,7 @@ pkgs.mkShell {
     pkgs.python312Packages.pillow
     pkgs.python312Packages.qbittorrent-api
     pkgs.python312Packages.qdarkstyle
-    pkgs.python312Packages.python-dotenv # 👈 ДОБАВИЛИ ЭТО
+    pkgs.python312Packages.python-dotenv 
     pkgs.qt5.qtbase
     pkgs.qt5.qtwayland
     pkgs.qt5.qtimageformats
