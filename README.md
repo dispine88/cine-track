@@ -1,46 +1,49 @@
 # CineTrack
 
-CineTrack - это локальный менеджер медиатеки с интеграцией TMDB и qBittorrent.
+**CineTrack** is a local media library manager with TMDB and qBittorrent integration.
 
 ![CineTrack Screenshot](image.png)
 
-## Возможности
-- 📁 Сканирование локальных папок с фильмами и сериалами.
-- 🖼️ Автоматическая загрузка постеров и года выпуска из базы TMDB.
-- 🧲 Интеграция с qBittorrent Web UI для отслеживания загрузок.
-- 🌍 Мультиязычный интерфейс (RU/EN).
-- 🎨 Кастомная тема оформления через QSS (поддерживает любые CSS-стили).
+## Features
+- 📁 Scan local folders for movies and TV shows.
+- 🖼️ Automatic poster and release year fetching from TMDB.
+- 🧲 qBittorrent Web UI integration for tracking downloads.
+- 🌍 Multilingual interface (RU/EN).
+- 🎨 Custom theme via QSS (supports any CSS styles).
+- ▶️ Built-in video playback (via MPV).
 
-## Требования
-- **ОС:** Linux (рекомендуется NixOS, так как проект использует `shell.nix`).
-- **Пакетный менеджер Nix** (для автоматической установки зависимостей).
-- **MPV** (для воспроизведения видео).
-- **Python 3.10+** (устанавливается автоматически через Nix).
+## Requirements
+- **OS:** Linux (NixOS recommended, as the project uses shell.nix).
+- **Nix package manager** (for automatic dependency installation).
+- **MPV** (for video playback).
+- **Python 3.10+** (installed automatically via Nix).
 
-## Установка (Linux / NixOS)
+## Installation
 
-1. Склонируйте репозиторий:
+1. Clone the repository:
     
     ```bash
     git clone https://github.com/dispine88/cine-track.git
     cd cine-track
     ```
-2. Запустите установщик (он создаст ярлык в меню приложений):
 
+2. Run the installer (it will create a shortcut in the app menu):
+    
     ```bash
     ./install.sh
     ```
-3. Настройте переменные окружения:
-Создайте файл .env в папке проекта и добавьте туда ваш API-ключ TMDB:
 
-    ```env
-    TMDB_API_KEY=ваш_ключ_здесь
+3. Create a .env file in the project folder and mandatory add your TMDB API key (https://www.themoviedb.org/):
+    
+    ```bash
+    TMDB_API_KEY=your_key_here
     ```
-4. Запускайте CineTrack из меню приложений или через терминал командой:
 
+4. Launch **CineTrack** from the app menu or via terminal:
+    
     ```bash
     cinetrack
     ```
 
-*Сделано с любовью к кино и коду.*
-
+---
+*Made with love for cinema and code.*
