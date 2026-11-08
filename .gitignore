@@ -1,0 +1,17 @@
+# Секреты и настройки
+.env
+settings.json
+
+# Базы данных
+*.db
+*.sqlite
+
+# Кэш и виртуальные окружения
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Системный мусор
+.DS_Store
+Thumbs.db
