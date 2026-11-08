@@ -10,7 +10,7 @@
 - qBittorrent Web UI integration for tracking downloads.
 - Multilingual interface (RU/EN).
 - Custom theme via QSS (supports any CSS styles).
-- ▶Built-in video playback (via MPV).
+- Built-in video playback (via MPV).
 
 ## Requirements
 - **OS:** Linux (NixOS recommended, as the project uses shell.nix).
