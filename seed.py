@@ -3,17 +3,15 @@ from db import Genre, Review, Title, get_session, init_db
 
 
 def seed_data():
-    init_db()  # Создаем таблицы, если их нет
+    init_db()
 
     with get_session() as session:
-        # 1. Проверяем, не заполнена ли уже база, чтобы не дублировать
         if session.query(Title).first():
             print("База уже заполнена! Пропускаем.")
             return
 
         print("Заполняем базу тестовыми данными...")
 
-        # 2. Создаем жанры
         sci_fi = Genre(name="Фантастика")
         drama = Genre(name="Драма")
         action = Genre(name="Экшен")
@@ -22,7 +20,6 @@ def seed_data():
         session.add_all([sci_fi, drama, action, crime])
         session.commit()
 
-        # 3. Создаем фильмы и сериалы
         interstellar = Title(
             name="Интерстеллар",
             year=2014,
@@ -44,7 +41,6 @@ def seed_data():
         session.add_all([interstellar, breaking_bad, john_wick])
         session.commit()
 
-        # 4. Добавляем отзывы и оценки (для тех, что посмотрели)
         rev1 = Review(
             title_id=interstellar.id, rating=10, text="Плакал над роботом. Нолан гений."
         )
