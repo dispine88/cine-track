@@ -21,13 +21,9 @@ from db import get_session, Title
 
 load_dotenv()
 TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")
-
 CACHE_DIR = os.path.expanduser("~/.cache/cinetrack_posters")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
-# ==========================================
-#            ОКНО ПОИСКА (SearchDialog)
-# ==========================================
 class SearchDialog(QDialog):
     def __init__(self, parent=None, lang="RU"):
         super().__init__(parent)
@@ -38,7 +34,6 @@ class SearchDialog(QDialog):
         
         layout = QVBoxLayout(self)
         
-        # Верхняя часть: Выбор базы и строка ввода
         top_layout = QHBoxLayout()
         self.source_combo = QComboBox()
         self.source_combo.addItems(["TMDB", "Local (Локально)", "IMDB (Скоро)", "Netflix (Скоро)"])
@@ -55,12 +50,10 @@ class SearchDialog(QDialog):
         top_layout.addWidget(self.search_btn)
         layout.addLayout(top_layout)
         
-        # Список результатов
         self.results_list = QListWidget()
         self.results_list.itemDoubleClicked.connect(self.accept_selection)
         layout.addWidget(self.results_list)
         
-        # Статус и кнопка закрытия
         self.status_label = QLabel("")
         self.status_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.status_label)
@@ -99,7 +92,7 @@ class SearchDialog(QDialog):
                 
             self.status_label.setText("Поиск успешен. Выберите результат:" if self.lang == "RU" else "Search successful. Select a result:")
             
-            for res in results[:10]: # Показываем первые 10
+            for res in results[:10]:
                 name = res.get('name') or res.get('title')
                 date = res.get('first_air_date') or res.get('release_date', '')
                 year = date[:4] if date else "?"
@@ -107,7 +100,7 @@ class SearchDialog(QDialog):
                 display = f"{name} ({year}) [{media_type}]"
                 
                 item = QListWidgetItem(display)
-                item.setData(Qt.UserRole, res) # Сохраняем весь JSON результат
+                item.setData(Qt.UserRole, res)
                 self.results_list.addItem(item)
                 
         except Exception as e:
@@ -119,9 +112,6 @@ class SearchDialog(QDialog):
         self.selected_result = item.data(Qt.UserRole)
         self.accept()
 
-# ==========================================
-#            ВИЗАРД НАСТРОЙКИ
-# ==========================================
 class SetupWizard(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -129,15 +119,14 @@ class SetupWizard(QDialog):
         self.setFixedSize(500, 400)
         self.setWindowFlags(Qt.Dialog | Qt.WindowStaysOnTopHint)
         
-        self.lang = "EN" # Начинаем с английского
+        self.lang = "EN"
         self.settings_data = {"qbit_enabled": False, "qbit_host": "localhost", "qbit_port": 8080, "qbit_user": "admin", "qbit_pass": "adminadmin", "language": "EN"}
         
         layout = QVBoxLayout(self)
-        
         self.stack = QStackedWidget()
         layout.addWidget(self.stack)
         
-        # --- СТРАНИЦА 1: Выбор языка ---
+        # Page 1: Language
         self.page1 = QWidget()
         p1_layout = QVBoxLayout(self.page1)
         self.welcome_label = QLabel("<h2>Welcome to CineTrack!</h2><p>Please choose your language:</p>")
@@ -154,7 +143,7 @@ class SetupWizard(QDialog):
         p1_layout.addLayout(btn_layout)
         self.stack.addWidget(self.page1)
         
-        # --- СТРАНИЦА 2: qBittorrent ---
+        # Page 2: qBittorrent
         self.page2 = QWidget()
         p2_layout = QVBoxLayout(self.page2)
         self.qbit_cb = QCheckBox("Интегрировать с qBittorrent")
@@ -176,7 +165,7 @@ class SetupWizard(QDialog):
         self.qbit_cb.toggled.connect(self.toggle_qbit_fields)
         self.stack.addWidget(self.page2)
         
-        # --- СТРАНИЦА 3: Завершение ---
+        # Page 3: Finish
         self.page3 = QWidget()
         p3_layout = QVBoxLayout(self.page3)
         self.finish_label = QLabel("<h2>Всё готово!</h2><p>Нажмите 'Завершить', чтобы начать работу.</p>")
@@ -184,7 +173,6 @@ class SetupWizard(QDialog):
         p3_layout.addWidget(self.finish_label)
         self.stack.addWidget(self.page3)
         
-        # --- НИЖНЯЯ ПАНЕЛЬ ---
         bottom_layout = QHBoxLayout()
         self.step_label = QLabel("< 1/3 >")
         self.step_label.setStyleSheet("color: gray;")
@@ -238,7 +226,6 @@ class SetupWizard(QDialog):
             self.back_btn.setEnabled(True)
             self.update_ui_text()
         else:
-            # Сохраняем настройки qBit
             self.settings_data["qbit_enabled"] = self.qbit_cb.isChecked()
             self.settings_data["qbit_host"] = self.host_input.text()
             self.settings_data["qbit_port"] = int(self.port_input.text() or 8080)
@@ -255,9 +242,6 @@ class SetupWizard(QDialog):
                 self.back_btn.setEnabled(False)
             self.update_ui_text()
 
-# ==========================================
-#            ГЛАВНОЕ ОКНО
-# ==========================================
 TRANSLATIONS = {
     "RU": {
         "scan": "📁 Сканировать", "add": "➕ Добавить", "search": "🔍 Поиск",
@@ -286,7 +270,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
         
-        # --- Верхняя панель ---
         top_layout = QHBoxLayout()
         self.scan_btn = QPushButton()
         self.scan_btn.clicked.connect(self.scan_folder)
@@ -311,11 +294,9 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self.lang_btn)
         main_layout.addLayout(top_layout)
         
-        # --- Сплиттер ---
         splitter = QSplitter(Qt.Horizontal)
         main_layout.addWidget(splitter)
         
-        # Левая часть (СПИСОК)
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
         left_layout.setContentsMargins(0, 0, 0, 0)
@@ -330,7 +311,6 @@ class MainWindow(QMainWindow):
         left_layout.addWidget(self.list_widget)
         splitter.addWidget(left_widget)
         
-        # Правая часть (Инфо)
         right_widget = QWidget()
         right_layout = QVBoxLayout(right_widget)
         
@@ -385,8 +365,7 @@ class MainWindow(QMainWindow):
         name = os.path.splitext(filename)[0]
         name = re.sub(r'\[.*?\]|\(.*?\)', '', name)
         name = name.replace('_', ' ').replace('.', ' ')
-        name = re.sub(' +', ' ', name).strip()
-        return name
+        return re.sub(' +', ' ', name).strip()
 
     def scan_folder(self):
         folder = QFileDialog.getExistingDirectory(self, "Выберите папку" if self.lang == "RU" else "Select Folder")
@@ -484,17 +463,12 @@ class MainWindow(QMainWindow):
 
     def load_local_image(self, path):
         try:
-            img = Image.open(path)
-            img = img.convert("RGBA")
-            data = img.tobytes("raw", "RGBA")
-            qim = QImage(data, img.size[0], img.size[1], QImage.Format_RGBA8888)
+            img = Image.open(path).convert("RGBA")
+            qim = QImage(img.tobytes("raw", "RGBA"), img.size[0], img.size[1], QImage.Format_RGBA8888)
             pixmap = QPixmap.fromImage(qim)
-            
             if not pixmap.isNull():
                 self.poster_label.setPixmap(pixmap.scaled(400, 600, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            else:
-                self.poster_label.setText("Error")
-        except Exception as e:
+        except Exception:
             self.poster_label.setText("Error")
             if CACHE_DIR in path:
                 try: os.remove(path)
@@ -515,26 +489,19 @@ class MainWindow(QMainWindow):
             if poster_path:
                 poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
                 try:
-                    headers = {'User-Agent': 'Mozilla/5.0'}
-                    response = requests.get(poster_url, headers=headers, timeout=10)
+                    response = requests.get(poster_url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
                     if response.status_code == 200:
-                        img = Image.open(BytesIO(response.content))
-                        img = img.convert("RGB")
-                        
+                        img = Image.open(BytesIO(response.content)).convert("RGB")
                         with get_session() as session:
                             for item in selected_items:
                                 title = session.get(Title, item.data(Qt.UserRole))
                                 if title:
-                                    cache_path = os.path.join(CACHE_DIR, f"{title.id}.jpg")
-                                    img.save(cache_path, "JPEG", quality=90)
+                                    img.save(os.path.join(CACHE_DIR, f"{title.id}.jpg"), "JPEG", quality=90)
                                     title.year = new_year
                                     title.poster_url = poster_url
                             session.commit()
                 except Exception as e:
-                    print(f"Ошибка скачивания постера: {e}")
-            else:
-                QMessageBox.information(self, "Инфо", "У этого тайтла нет постера.")
-            
+                    print(f"Error downloading poster: {e}")
             self.load_data()
             self.on_item_selected()
 
@@ -561,26 +528,20 @@ class MainWindow(QMainWindow):
         if not self.settings.get("qbit_enabled"):
             QMessageBox.information(self, "qBittorrent", "Интеграция отключена.")
             return
-        conn_info = dict(
-            host=self.settings["qbit_host"], port=self.settings["qbit_port"],
-            username=self.settings["qbit_user"], password=self.settings["qbit_pass"],
-        )
+        conn_info = dict(host=self.settings["qbit_host"], port=self.settings["qbit_port"], username=self.settings["qbit_user"], password=self.settings["qbit_pass"])
         try:
             with qbittorrentapi.Client(**conn_info) as qbt_client:
                 torrents = qbt_client.torrents_info()
                 if not torrents:
                     QMessageBox.information(self, "qBittorrent", "Список торрентов пуст.")
                     return
-                msg = "Активные загрузки:\n\n"
-                for t in torrents[:10]:
-                    msg += f"[{round(t.progress * 100, 1)}%] {t.name}\n"
+                msg = "Активные загрузки:\n\n" + "\n".join([f"[{round(t.progress * 100, 1)}%] {t.name}" for t in torrents[:10]])
                 QMessageBox.information(self, "qBittorrent", msg)
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Не удалось подключиться.\n\n{e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    
     if os.path.exists("style.qss"):
         with open("style.qss", "r") as f:
             app.setStyleSheet(f.read())
