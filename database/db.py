@@ -1,16 +1,9 @@
 import os
-import sys
 from sqlalchemy import create_engine, ForeignKey, String, Integer, Text, Table, Column
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
+from config import APP_DIR
 
-if getattr(sys, 'frozen', False):
-    appdata = os.getenv('APPDATA')
-    BASE_DIR = os.path.join(appdata, "CineTrack")
-    os.makedirs(BASE_DIR, exist_ok=True)
-else:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-DB_PATH = os.path.join(BASE_DIR, "cinetrack.db")
+DB_PATH = os.path.join(APP_DIR, "cinetrack.db")
 engine = create_engine(f"sqlite:///{DB_PATH}", echo=False)
 
 class Base(DeclarativeBase):

@@ -18,19 +18,16 @@
   <a target="code" href="///C:/proj/cine-track-main/main.py" type="text/plain"><tt>main.py</tt></a>
 <span class="moduletype">Script</span>  <div class="import">
 imports:
-    <a href="#PIL">PIL</a>
- &#8226;   <a href="#PIL.Image">PIL.Image</a>
- &#8226;   <a href="#PyQt5.QtCore">PyQt5.QtCore</a>
- &#8226;   <a href="#PyQt5.QtGui">PyQt5.QtGui</a>
+    <a href="#PyQt5.QtGui">PyQt5.QtGui</a>
  &#8226;   <a href="#PyQt5.QtWidgets">PyQt5.QtWidgets</a>
  &#8226;   <a href="#_collections_abc">_collections_abc</a>
  &#8226;   <a href="#_weakrefset">_weakrefset</a>
  &#8226;   <a href="#abc">abc</a>
  &#8226;   <a href="#codecs">codecs</a>
  &#8226;   <a href="#collections">collections</a>
+ &#8226;   <a href="#config">config</a>
  &#8226;   <a href="#copyreg">copyreg</a>
- &#8226;   <a href="#db">db</a>
- &#8226;   <a href="#dotenv">dotenv</a>
+ &#8226;   <a href="#database.db">database.db</a>
  &#8226;   <a href="#encodings">encodings</a>
  &#8226;   <a href="#encodings._win_cp_codecs">encodings._win_cp_codecs</a>
  &#8226;   <a href="#encodings.aliases">encodings.aliases</a>
@@ -157,6 +154,8 @@ imports:
  &#8226;   <a href="#enum">enum</a>
  &#8226;   <a href="#functools">functools</a>
  &#8226;   <a href="#genericpath">genericpath</a>
+ &#8226;   <a href="#gui.dialogs">gui.dialogs</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#heapq">heapq</a>
  &#8226;   <a href="#io">io</a>
  &#8226;   <a href="#json">json</a>
@@ -172,16 +171,13 @@ imports:
  &#8226;   <a href="#pyi_rth_pkgutil.py">pyi_rth_pkgutil.py</a>
  &#8226;   <a href="#pyi_rth_pyqt5.py">pyi_rth_pyqt5.py</a>
  &#8226;   <a href="#pyi_rth_setuptools.py">pyi_rth_setuptools.py</a>
- &#8226;   <a href="#qbittorrentapi">qbittorrentapi</a>
  &#8226;   <a href="#re">re</a>
  &#8226;   <a href="#re._casefix">re._casefix</a>
  &#8226;   <a href="#re._compiler">re._compiler</a>
  &#8226;   <a href="#re._constants">re._constants</a>
  &#8226;   <a href="#re._parser">re._parser</a>
  &#8226;   <a href="#reprlib">reprlib</a>
- &#8226;   <a href="#requests">requests</a>
  &#8226;   <a href="#stat">stat</a>
- &#8226;   <a href="#subprocess">subprocess</a>
  &#8226;   <a href="#sys">sys</a>
  &#8226;   <a href="#traceback">traceback</a>
  &#8226;   <a href="#types">types</a>
@@ -701,7 +697,7 @@ imported by:
  &#8226;   <a href="#PIL._version">PIL._version</a>
  &#8226;   <a href="#PIL._webp">PIL._webp</a>
  &#8226;   <a href="#PIL.features">PIL.features</a>
- &#8226;   <a href="#main.py">main.py</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
 
   </div>
 
@@ -1379,7 +1375,7 @@ imported by:
  &#8226;   <a href="#PIL.XbmImagePlugin">PIL.XbmImagePlugin</a>
  &#8226;   <a href="#PIL.XpmImagePlugin">PIL.XpmImagePlugin</a>
  &#8226;   <a href="#PIL.features">PIL.features</a>
- &#8226;   <a href="#main.py">main.py</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
 
   </div>
 
@@ -2857,7 +2853,8 @@ imported by:
     <a href="#PyQt5">PyQt5</a>
  &#8226;   <a href="#PyQt5.QtGui">PyQt5.QtGui</a>
  &#8226;   <a href="#PyQt5.QtWidgets">PyQt5.QtWidgets</a>
- &#8226;   <a href="#main.py">main.py</a>
+ &#8226;   <a href="#gui.dialogs">gui.dialogs</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
 
   </div>
 
@@ -2879,6 +2876,7 @@ imports:
 imported by:
     <a href="#PyQt5">PyQt5</a>
  &#8226;   <a href="#PyQt5.QtWidgets">PyQt5.QtWidgets</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#main.py">main.py</a>
 
   </div>
@@ -2901,6 +2899,8 @@ imports:
 imported by:
     <a href="#PyQt5.QtCore">PyQt5.QtCore</a>
  &#8226;   <a href="#PyQt5.QtGui">PyQt5.QtGui</a>
+ &#8226;   <a href="#gui.dialogs">gui.dialogs</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#main.py">main.py</a>
 
   </div>
@@ -7772,6 +7772,28 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="config"></a>
+  <a target="code" href="///C:/proj/cine-track-main/config.py" type="text/plain"><tt>config</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#dotenv">dotenv</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#sys">sys</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#database.db">database.db</a>
+ &#8226;   <a href="#gui.dialogs">gui.dialogs</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
+ &#8226;   <a href="#main.py">main.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="configparser"></a>
   <a target="code" href="///C:/Users/dispine/AppData/Local/Python/pythoncore-3.15-64/Lib/configparser.py" type="text/plain"><tt>configparser</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -8108,6 +8130,63 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="database"></a>
+  <a target="code" href="///C:/proj/cine-track-main/database/__init__.py" type="text/plain"><tt>database</tt></a>
+<span class="moduletype">Package</span>  <div class="import">
+imports:
+    <a href="#database.crud">database.crud</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#database.crud">database.crud</a>
+ &#8226;   <a href="#database.db">database.db</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="database.crud"></a>
+  <a target="code" href="///C:/proj/cine-track-main/database/crud.py" type="text/plain"><tt>database.crud</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#database">database</a>
+ &#8226;   <a href="#database.db">database.db</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#database">database</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="database.db"></a>
+  <a target="code" href="///C:/proj/cine-track-main/database/db.py" type="text/plain"><tt>database.db</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#config">config</a>
+ &#8226;   <a href="#database">database</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#sqlalchemy">sqlalchemy</a>
+ &#8226;   <a href="#sqlalchemy.orm">sqlalchemy.orm</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#database.crud">database.crud</a>
+ &#8226;   <a href="#main.py">main.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="dataclasses"></a>
   <a target="code" href="///C:/Users/dispine/AppData/Local/Python/pythoncore-3.15-64/Lib/dataclasses.py" type="text/plain"><tt>dataclasses</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -8210,25 +8289,6 @@ imported by:
  &#8226;   <a href="#tomllib._re">tomllib._re</a>
  &#8226;   <a href="#urllib3.connection">urllib3.connection</a>
  &#8226;   <a href="#xmlrpc.client">xmlrpc.client</a>
-
-  </div>
-
-</div>
-
-<div class="node">
-  <a name="db"></a>
-  <a target="code" href="///C:/proj/cine-track-main/db.py" type="text/plain"><tt>db</tt></a>
-<span class="moduletype">SourceModule</span>  <div class="import">
-imports:
-    <a href="#os">os</a>
- &#8226;   <a href="#sqlalchemy">sqlalchemy</a>
- &#8226;   <a href="#sqlalchemy.orm">sqlalchemy.orm</a>
- &#8226;   <a href="#sys">sys</a>
-
-  </div>
-  <div class="import">
-imported by:
-    <a href="#main.py">main.py</a>
 
   </div>
 
@@ -8378,11 +8438,11 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#dotenv.ipython">dotenv.ipython</a>
+    <a href="#config">config</a>
+ &#8226;   <a href="#dotenv.ipython">dotenv.ipython</a>
  &#8226;   <a href="#dotenv.main">dotenv.main</a>
  &#8226;   <a href="#dotenv.parser">dotenv.parser</a>
  &#8226;   <a href="#dotenv.variables">dotenv.variables</a>
- &#8226;   <a href="#main.py">main.py</a>
 
   </div>
 
@@ -11972,6 +12032,90 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="gui"></a>
+  <a target="code" href="///C:/proj/cine-track-main/gui/__init__.py" type="text/plain"><tt>gui</tt></a>
+<span class="moduletype">Package</span>  <div class="import">
+imported by:
+    <a href="#gui.constants">gui.constants</a>
+ &#8226;   <a href="#gui.dialogs">gui.dialogs</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="gui.constants"></a>
+  <a target="code" href="///C:/proj/cine-track-main/gui/constants.py" type="text/plain"><tt>gui.constants</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#gui">gui</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#gui.mainwindow">gui.mainwindow</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="gui.dialogs"></a>
+  <a target="code" href="///C:/proj/cine-track-main/gui/dialogs.py" type="text/plain"><tt>gui.dialogs</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PyQt5.QtCore">PyQt5.QtCore</a>
+ &#8226;   <a href="#PyQt5.QtWidgets">PyQt5.QtWidgets</a>
+ &#8226;   <a href="#config">config</a>
+ &#8226;   <a href="#gui">gui</a>
+ &#8226;   <a href="#requests">requests</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#gui.mainwindow">gui.mainwindow</a>
+ &#8226;   <a href="#main.py">main.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="gui.mainwindow"></a>
+  <a target="code" href="///C:/proj/cine-track-main/gui/mainwindow.py" type="text/plain"><tt>gui.mainwindow</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PIL">PIL</a>
+ &#8226;   <a href="#PIL.Image">PIL.Image</a>
+ &#8226;   <a href="#PyQt5.QtCore">PyQt5.QtCore</a>
+ &#8226;   <a href="#PyQt5.QtGui">PyQt5.QtGui</a>
+ &#8226;   <a href="#PyQt5.QtWidgets">PyQt5.QtWidgets</a>
+ &#8226;   <a href="#config">config</a>
+ &#8226;   <a href="#database">database</a>
+ &#8226;   <a href="#database.crud">database.crud</a>
+ &#8226;   <a href="#gui">gui</a>
+ &#8226;   <a href="#gui.constants">gui.constants</a>
+ &#8226;   <a href="#gui.dialogs">gui.dialogs</a>
+ &#8226;   <a href="#io">io</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#os">os</a>
+ &#8226;   <a href="#qbittorrentapi">qbittorrentapi</a>
+ &#8226;   <a href="#re">re</a>
+ &#8226;   <a href="#requests">requests</a>
+ &#8226;   <a href="#subprocess">subprocess</a>
+ &#8226;   <a href="#sys">sys</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#main.py">main.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="gzip"></a>
   <a target="code" href="///C:/Users/dispine/AppData/Local/Python/pythoncore-3.15-64/Lib/gzip.py" type="text/plain"><tt>gzip</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
@@ -13135,6 +13279,7 @@ imported by:
  &#8226;   <a href="#email.parser">email.parser</a>
  &#8226;   <a href="#encodings.quopri_codec">encodings.quopri_codec</a>
  &#8226;   <a href="#encodings.uu_codec">encodings.uu_codec</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#gzip">gzip</a>
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
@@ -13357,6 +13502,8 @@ imports:
   <div class="import">
 imported by:
     <a href="#charset_normalizer.models">charset_normalizer.models</a>
+ &#8226;   <a href="#config">config</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
  &#8226;   <a href="#json.decoder">json.decoder</a>
  &#8226;   <a href="#json.encoder">json.encoder</a>
@@ -14862,10 +15009,11 @@ imported by:
  &#8226;   <a href="#compression.zstd._zstdfile">compression.zstd._zstdfile</a>
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
  &#8226;   <a href="#concurrent.futures.thread">concurrent.futures.thread</a>
+ &#8226;   <a href="#config">config</a>
  &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#contextlib">contextlib</a>
  &#8226;   <a href="#ctypes">ctypes</a>
- &#8226;   <a href="#db">db</a>
+ &#8226;   <a href="#database.db">database.db</a>
  &#8226;   <a href="#dotenv.main">dotenv.main</a>
  &#8226;   <a href="#email.utils">email.utils</a>
  &#8226;   <a href="#fnmatch">fnmatch</a>
@@ -14874,6 +15022,7 @@ imported by:
  &#8226;   <a href="#getopt">getopt</a>
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#glob">glob</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#gzip">gzip</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
  &#8226;   <a href="#http.server">http.server</a>
@@ -16006,7 +16155,7 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#main.py">main.py</a>
+    <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#qbittorrentapi._attrdict">qbittorrentapi._attrdict</a>
  &#8226;   <a href="#qbittorrentapi._version_support">qbittorrentapi._version_support</a>
  &#8226;   <a href="#qbittorrentapi.app">qbittorrentapi.app</a>
@@ -16609,6 +16758,7 @@ imported by:
  &#8226;   <a href="#ftplib">ftplib</a>
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#glob">glob</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#html">html</a>
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
@@ -16896,7 +17046,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#main.py">main.py</a>
+    <a href="#gui.dialogs">gui.dialogs</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#qbittorrentapi.auth">qbittorrentapi.auth</a>
  &#8226;   <a href="#qbittorrentapi.request">qbittorrentapi.request</a>
  &#8226;   <a href="#requests">requests</a>
@@ -21520,7 +21671,7 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#db">db</a>
+    <a href="#database.db">database.db</a>
  &#8226;   <a href="#sqlalchemy">sqlalchemy</a>
  &#8226;   <a href="#sqlalchemy.connectors">sqlalchemy.connectors</a>
  &#8226;   <a href="#sqlalchemy.connectors.pyodbc">sqlalchemy.connectors.pyodbc</a>
@@ -25355,7 +25506,7 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#db">db</a>
+    <a href="#database.db">database.db</a>
  &#8226;   <a href="#sqlalchemy">sqlalchemy</a>
  &#8226;   <a href="#sqlalchemy.ext.asyncio.session">sqlalchemy.ext.asyncio.session</a>
  &#8226;   <a href="#sqlalchemy.ext.baked">sqlalchemy.ext.baked</a>
@@ -30301,7 +30452,7 @@ imported by:
  &#8226;   <a href="#asyncio.subprocess">asyncio.subprocess</a>
  &#8226;   <a href="#asyncio.unix_events">asyncio.unix_events</a>
  &#8226;   <a href="#asyncio.windows_utils">asyncio.windows_utils</a>
- &#8226;   <a href="#main.py">main.py</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#multiprocessing.popen_spawn_win32">multiprocessing.popen_spawn_win32</a>
  &#8226;   <a href="#multiprocessing.util">multiprocessing.util</a>
  &#8226;   <a href="#os">os</a>
@@ -30390,13 +30541,13 @@ imported by:
  &#8226;   <a href="#compression._common._streams">compression._common._streams</a>
  &#8226;   <a href="#concurrent.futures.interpreter">concurrent.futures.interpreter</a>
  &#8226;   <a href="#concurrent.futures.process">concurrent.futures.process</a>
+ &#8226;   <a href="#config">config</a>
  &#8226;   <a href="#configparser">configparser</a>
  &#8226;   <a href="#contextlib">contextlib</a>
  &#8226;   <a href="#ctypes">ctypes</a>
  &#8226;   <a href="#ctypes._endian">ctypes._endian</a>
  &#8226;   <a href="#ctypes._layout">ctypes._layout</a>
  &#8226;   <a href="#dataclasses">dataclasses</a>
- &#8226;   <a href="#db">db</a>
  &#8226;   <a href="#decimal">decimal</a>
  &#8226;   <a href="#dis">dis</a>
  &#8226;   <a href="#dotenv.main">dotenv.main</a>
@@ -30415,6 +30566,7 @@ imported by:
  &#8226;   <a href="#getopt">getopt</a>
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#glob">glob</a>
+ &#8226;   <a href="#gui.mainwindow">gui.mainwindow</a>
  &#8226;   <a href="#gzip">gzip</a>
  &#8226;   <a href="#http.client">http.client</a>
  &#8226;   <a href="#http.server">http.server</a>
