@@ -2,7 +2,7 @@ import requests
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QPushButton, QLineEdit, QDialog, QFormLayout, 
                              QCheckBox, QComboBox, QListWidget, QListWidgetItem, 
-                             QStackedWidget, QApplication)
+                             QStackedWidget)
 from PyQt5.QtCore import Qt
 import config
 
@@ -159,6 +159,7 @@ class SearchDialog(BaseDialog):
         self.search_btn.setEnabled(False)
         self.results_list.clear()
         
+        from PyQt5.QtWidgets import QApplication
         QApplication.processEvents()
         
         url = f"https://api.themoviedb.org/3/search/multi?api_key={config.TMDB_API_KEY}&query={requests.utils.quote(query)}"
@@ -195,7 +196,7 @@ class SearchDialog(BaseDialog):
 class SetupWizard(BaseDialog):
     def __init__(self, parent=None):
         super().__init__(parent, "CineTrack Setup")
-        self.setFixedSize(500, 450) # Сделали чуть выше
+        self.setFixedSize(500, 450)
         
         self.lang = "EN"
         self.settings_data = {
@@ -206,7 +207,6 @@ class SetupWizard(BaseDialog):
         self.stack = QStackedWidget()
         self.content_layout.addWidget(self.stack)
         
-        # --- СТРАНИЦА 1: Язык ---
         self.page1 = QWidget()
         p1_layout = QVBoxLayout(self.page1)
         self.welcome_label = QLabel("<h2>Welcome to CineTrack!</h2><p>Please choose your language:</p>")
@@ -223,7 +223,6 @@ class SetupWizard(BaseDialog):
         p1_layout.addLayout(btn_layout)
         self.stack.addWidget(self.page1)
         
-        # --- СТРАНИЦА 2: API Key ---
         self.page_api = QWidget()
         p_api_layout = QVBoxLayout(self.page_api)
         self.api_label = QLabel("<h2>TMDB API Key</h2><p>Please enter your TMDB API key to fetch posters. You can get it for free at <a href='https://www.themoviedb.org/'>themoviedb.org</a>.</p>")
@@ -237,7 +236,6 @@ class SetupWizard(BaseDialog):
         p_api_layout.addStretch()
         self.stack.addWidget(self.page_api)
 
-        # --- СТРАНИЦА 3: qBittorrent ---
         self.page2 = QWidget()
         p2_layout = QVBoxLayout(self.page2)
         self.qbit_cb = QCheckBox("Интегрировать с qBittorrent")
@@ -258,7 +256,6 @@ class SetupWizard(BaseDialog):
         self.qbit_cb.toggled.connect(self.toggle_qbit_fields)
         self.stack.addWidget(self.page2)
         
-        # --- СТРАНИЦА 4: Финиш ---
         self.page3 = QWidget()
         p3_layout = QVBoxLayout(self.page3)
         self.finish_label = QLabel("<h2>Всё готово!</h2><p>Нажмите 'Завершить'.</p>")
@@ -266,7 +263,6 @@ class SetupWizard(BaseDialog):
         p3_layout.addWidget(self.finish_label)
         self.stack.addWidget(self.page3)
         
-        # --- НИЖНЯЯ ПАНЕЛЬ ---
         bottom_layout = QHBoxLayout()
         self.step_label = QLabel("< 1/4 >")
         self.step_label.setStyleSheet("color: gray;")
@@ -324,10 +320,7 @@ class SetupWizard(BaseDialog):
             self.back_btn.setEnabled(True)
             self.update_ui_text()
         else:
-            # Сохраняем ключ API
             self.settings_data["tmdb_api_key"] = self.api_input.text().strip()
-            
-            # Сохраняем qBit
             self.settings_data["qbit_enabled"] = self.qbit_cb.isChecked()
             self.settings_data["qbit_host"] = self.host_input.text()
             self.settings_data["qbit_port"] = int(self.port_input.text() or 8080)

@@ -256,6 +256,12 @@ class MainWindow(QMainWindow):
             
             if poster_path:
                 poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+                
+                if not poster_url.startswith("https://image.tmdb.org/"):
+                    print(f"Security Warning: Blocked download from untrusted URL: {poster_url}")
+                    CustomMessageBox(self, "Ошибка безопасности", "Попытка скачать постер с недоверенного источника.").exec_()
+                    return
+                
                 try:
                     response = requests.get(poster_url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
                     if response.status_code == 200:
@@ -267,6 +273,7 @@ class MainWindow(QMainWindow):
                             crud.update_title_info(title_id, year=new_year, poster_url=poster_url)
                 except Exception as e:
                     print(f"Error downloading poster: {e}")
+            
             self.load_data()
             self.on_item_selected()
 
@@ -283,17 +290,29 @@ class MainWindow(QMainWindow):
     def play_video(self):
         selected_items = self.list_widget.selectedItems()
         if not selected_items: return
+        
         title_id = selected_items[0].data(Qt.UserRole)
         title = crud.get_title(title_id)
         
         if title and title.file_path:
+            safe_path = os.path.abspath(title.file_path)
+            
+            if not os.path.isfile(safe_path):
+                CustomMessageBox(self, "Ошибка", "Файл не найден или был перемещен.").exec_()
+                return
+            
+            allowed_exts = ('.mkv', '.mp4', '.avi', '.webm')
+            if not safe_path.lower().endswith(allowed_exts):
+                CustomMessageBox(self, "Ошибка безопасности", "Недопустимый формат файла.").exec_()
+                return
+
             try: 
-                subprocess.Popen(["mpv", "--fs", title.file_path])
+                subprocess.Popen(["mpv", "--fs", safe_path])
             except FileNotFoundError: 
                 if sys.platform == "win32":
-                    os.startfile(title.file_path)
+                    os.startfile(safe_path)
                 else:
-                    subprocess.Popen(["xdg-open", title.file_path])
+                    subprocess.Popen(["xdg-open", safe_path])
 
     def check_qbittorrent(self):
         if not self.settings.get("qbit_enabled"):
@@ -304,7 +323,7 @@ class MainWindow(QMainWindow):
             host=self.settings["qbit_host"], 
             port=self.settings["qbit_port"], 
             username=self.settings["qbit_user"], 
-            password=self.settings["qbit_pass"]
+            password=config.QBIT_PASS
         )
         try:
             with qbittorrentapi.Client(**conn_info) as qbt_client:

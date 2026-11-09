@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import keyring
 from PyQt5.QtWidgets import QApplication, QDialog
 from PyQt5.QtGui import QIcon
 
@@ -29,10 +30,19 @@ if __name__ == "__main__":
     if not os.path.exists(config.SETTINGS_FILE):
         wizard = SetupWizard()
         if wizard.exec_() == QDialog.Accepted:
+            data = wizard.settings_data.copy()
+            
+            if data.get("tmdb_api_key"):
+                keyring.set_password("CineTrack", "tmdb_api_key", data["tmdb_api_key"])
+                config.TMDB_API_KEY = data["tmdb_api_key"]
+                del data["tmdb_api_key"]
+                
+            if data.get("qbit_pass"):
+                keyring.set_password("CineTrack", "qbit_pass", data["qbit_pass"])
+                del data["qbit_pass"]
+                
             with open(config.SETTINGS_FILE, "w") as f:
-                json.dump(wizard.settings_data, f, indent=4)
-            # 🚀 Применяем ключ в памяти сразу же!
-            config.TMDB_API_KEY = wizard.settings_data.get("tmdb_api_key", "")
+                json.dump(data, f, indent=4)
         else:
             sys.exit(0)
             
