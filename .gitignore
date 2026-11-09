@@ -1,21 +1,24 @@
 # Secrets and settings
 .env
 settings.json
-.cache_posters/
-*.bat
 
 # Databases
 *.db
 *.sqlite
 
-# PyInstaller build artifacts
-build/
-dist/
-*.spec
-
-# Python cache
+# Cache
+.cache_posters/
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 
+# PyInstaller
+build/
+dist/
+*.spec
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.bat
