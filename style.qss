@@ -1,0 +1,58 @@
+/* Main Window */
+QMainWindow, QWidget {
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: "Segoe UI", "Noto Sans", sans-serif;
+}
+
+/* List Widget */
+QListWidget {
+    background-color: #1e1e1e;
+    border: none;
+    outline: none;
+}
+QListWidget::item {
+    padding: 12px;
+    border-bottom: 1px solid #2d2d2d;
+    font-size: 15px;
+}
+QListWidget::item:selected {
+    background-color: #6200ea;
+    color: white;
+    border-radius: 6px;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #3700b3;
+    color: white;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background-color: #6200ea;
+}
+QPushButton:disabled {
+    background-color: #333;
+    color: #777;
+}
+
+/* Input Fields */
+QLineEdit {
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 5px;
+}
+
+/* Context Menu */
+QMenu {
+    background-color: #1e1e1e;
+    color: white;
+    border: 1px solid #333;
+}
+QMenu::item:selected {
+    background-color: #6200ea;
+}

@@ -1,0 +1,6 @@
+PyQt5
+requests
+Pillow
+qbittorrent-api
+python-dotenv
+SQLAlchemy
