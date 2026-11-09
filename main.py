@@ -21,7 +21,15 @@ from db import get_session, Title, init_db
 
 load_dotenv()
 TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")
-CACHE_DIR = os.path.expanduser("~/.cache/cinetrack_posters")
+
+if getattr(sys, 'frozen', False):
+    appdata = os.getenv('APPDATA')
+    APP_DIR = os.path.join(appdata, "CineTrack")
+    os.makedirs(APP_DIR, exist_ok=True)
+else:
+    APP_DIR = os.path.abspath(".")
+
+CACHE_DIR = os.path.join(APP_DIR, ".cache_posters")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 def resource_path(relative_path):
@@ -31,7 +39,6 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-# 🚀 УНИВЕРСАЛЬНЫЙ ЗАГОЛОВОК ДЛЯ ВСЕХ ОКОН
 class CustomTitleBar(QWidget):
     def __init__(self, parent, title_text="CineTrack"):
         super().__init__(parent)
@@ -68,7 +75,6 @@ class CustomTitleBar(QWidget):
             self.parent.move(self.parent.pos() + delta)
             self.start_pos = event.globalPos()
 
-# 🚀 БАЗОВЫЙ КЛАСС ДЛЯ ВСЕХ ДИАЛОГОВЫХ ОКОН (Чтобы не повторяться)
 class BaseDialog(QDialog):
     def __init__(self, parent=None, title="CineTrack"):
         super().__init__(parent)
@@ -84,7 +90,6 @@ class BaseDialog(QDialog):
         self.content_layout.setContentsMargins(15, 15, 15, 15)
         self.main_layout.addWidget(self.content_widget)
 
-# 🚀 КАСТОМНОЕ ОКНО СООБЩЕНИЙ (Замена QMessageBox)
 class CustomMessageBox(BaseDialog):
     def __init__(self, parent, title, text, icon_type="info"):
         super().__init__(parent, title)
@@ -107,7 +112,6 @@ class CustomMessageBox(BaseDialog):
         btn_layout.addStretch()
         self.content_layout.addLayout(btn_layout)
 
-# 🚀 КАСТОМНОЕ ОКНО ВВОДА (Замена QInputDialog)
 class CustomInputDialog(BaseDialog):
     def __init__(self, parent, title, label_text):
         super().__init__(parent, title)
@@ -136,7 +140,6 @@ class CustomInputDialog(BaseDialog):
     def get_text(self):
         return self.input_field.text()
 
-# 🚀 ОКНО ПОИСКА
 class SearchDialog(BaseDialog):
     def __init__(self, parent=None, lang="RU"):
         super().__init__(parent, "Поиск / Search" if lang == "RU" else "Search")
@@ -221,7 +224,6 @@ class SearchDialog(BaseDialog):
         self.selected_result = item.data(Qt.UserRole)
         self.accept()
 
-# 🚀 ВИЗАРД
 class SetupWizard(BaseDialog):
     def __init__(self, parent=None):
         super().__init__(parent, "CineTrack Setup")
@@ -451,8 +453,9 @@ class MainWindow(QMainWindow):
         self.load_data()
 
     def load_settings(self):
-        if os.path.exists('settings.json'):
-            with open('settings.json', 'r') as f:
+        settings_file = os.path.join(APP_DIR, 'settings.json')
+        if os.path.exists(settings_file):
+            with open(settings_file, 'r') as f:
                 return json.load(f)
         return {}
 
@@ -470,7 +473,8 @@ class MainWindow(QMainWindow):
     def toggle_language(self):
         self.lang = "EN" if self.lang == "RU" else "RU"
         self.settings["language"] = self.lang
-        with open('settings.json', 'w') as f:
+        settings_file = os.path.join(APP_DIR, 'settings.json')
+        with open(settings_file, 'w') as f:
             json.dump(self.settings, f, indent=4)
         self.update_ui_text()
         self.load_data()
@@ -503,7 +507,6 @@ class MainWindow(QMainWindow):
         self.load_data()
 
     def add_manual(self):
-        # 🚀 Используем наш кастомный инпут
         dialog = CustomInputDialog(self, "Добавить" if self.lang == "RU" else "Add", "Введите название:" if self.lang == "RU" else "Enter title:")
         if dialog.exec_() == QDialog.Accepted:
             text = dialog.get_text()
@@ -518,7 +521,6 @@ class MainWindow(QMainWindow):
         if not selected_items: return
         msg = f"Удалить {len(selected_items)} записей?"
         
-        # 🚀 Используем наш кастомный месседжбокс
         dialog = CustomMessageBox(self, "Удаление", msg)
         if dialog.exec_() == QDialog.Accepted:
             with get_session() as session:
@@ -596,7 +598,6 @@ class MainWindow(QMainWindow):
     def open_search_dialog(self):
         selected_items = self.list_widget.selectedItems()
         if not selected_items:
-            # 🚀 Кастомное предупреждение
             CustomMessageBox(self, "Внимание", "Сначала выберите файл в списке!").exec_()
             return
             
@@ -676,10 +677,11 @@ if __name__ == "__main__":
             
     init_db()
     
-    if not os.path.exists("settings.json"):
+    settings_file = os.path.join(APP_DIR, 'settings.json')
+    if not os.path.exists(settings_file):
         wizard = SetupWizard()
         if wizard.exec_() == QDialog.Accepted:
-            with open("settings.json", "w") as f:
+            with open(settings_file, "w") as f:
                 json.dump(wizard.settings_data, f, indent=4)
         else:
             sys.exit(0)

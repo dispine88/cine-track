@@ -3,9 +3,10 @@ import sys
 from sqlalchemy import create_engine, ForeignKey, String, Integer, Text, Table, Column
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
 
-# Определяем, откуда запущена программа (.exe или обычный .py)
 if getattr(sys, 'frozen', False):
-    BASE_DIR = os.path.dirname(sys.executable)
+    appdata = os.getenv('APPDATA')
+    BASE_DIR = os.path.join(appdata, "CineTrack")
+    os.makedirs(BASE_DIR, exist_ok=True)
 else:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
