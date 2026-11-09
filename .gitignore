@@ -1,0 +1,17 @@
+# Secrets and settings
+.env
+settings.json
+
+# Databases
+*.db
+*.sqlite
+
+# Cache and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# System files
+.DS_Store
+Thumbs.db
