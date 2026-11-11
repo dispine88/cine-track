@@ -5,6 +5,7 @@ import re
 import json
 import requests
 import qbittorrentapi
+import csv
 from io import BytesIO
 from PIL import Image
 
@@ -55,6 +56,9 @@ class MainWindow(QMainWindow):
         self.qbit_btn = QPushButton()
         self.qbit_btn.clicked.connect(self.check_qbittorrent)
         
+        self.export_btn = QPushButton()
+        self.export_btn.clicked.connect(self.export_to_csv)
+        
         self.lang_btn = QPushButton("EN" if self.lang == "RU" else "RU")
         self.lang_btn.setFixedWidth(50)
         self.lang_btn.clicked.connect(self.toggle_language)
@@ -63,6 +67,7 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self.add_btn)
         top_layout.addWidget(self.search_btn)
         top_layout.addWidget(self.qbit_btn)
+        top_layout.addWidget(self.export_btn)
         top_layout.addWidget(self.lang_btn)
         content_layout.addLayout(top_layout)
         
@@ -121,6 +126,7 @@ class MainWindow(QMainWindow):
         self.search_btn.setText(t["search"])
         self.play_btn.setText(t["play"])
         self.qbit_btn.setText(t["qbit"])
+        self.export_btn.setText("📄 Экспорт" if self.lang == "RU" else "📄 Export")
         self.poster_label.setText(t["no_poster"])
         self.details_label.setText(f"<h2>{t['select_file']}</h2>")
         self.lang_btn.setText("EN" if self.lang == "RU" else "RU")
@@ -313,6 +319,22 @@ class MainWindow(QMainWindow):
                     os.startfile(safe_path)
                 else:
                     subprocess.Popen(["xdg-open", safe_path])
+
+    def export_to_csv(self):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить CSV" if self.lang == "RU" else "Save CSV", "", "CSV Files (*.csv)")
+        if not file_path: return
+        
+        titles = crud.get_all_titles()
+        try:
+            with open(file_path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(["Name", "Year", "Type", "File Path"])
+                for t in titles:
+                    writer.writerow([t.name, t.year, t.type, t.file_path])
+            
+            CustomMessageBox(self, "Успех" if self.lang == "RU" else "Success", "Данные успешно экспортированы в CSV!" if self.lang == "RU" else "Data successfully exported to CSV!").exec_()
+        except Exception as e:
+            CustomMessageBox(self, "Ошибка" if self.lang == "RU" else "Error", str(e)).exec_()
 
     def check_qbittorrent(self):
         if not self.settings.get("qbit_enabled"):
