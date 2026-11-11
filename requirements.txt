@@ -1,7 +1,7 @@
-PyQt5
-requests
-Pillow
-qbittorrent-api
-python-dotenv
-SQLAlchemy
-keyring
+PyQt5==5.15.11
+SQLAlchemy==2.0.30
+requests==2.32.3
+Pillow==10.3.0
+qbittorrent-api==2024.3.60
+python-dotenv==1.0.1
+keyring==25.2.1

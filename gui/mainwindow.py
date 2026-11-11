@@ -126,7 +126,7 @@ class MainWindow(QMainWindow):
         self.search_btn.setText(t["search"])
         self.play_btn.setText(t["play"])
         self.qbit_btn.setText(t["qbit"])
-        self.export_btn.setText("📄 Экспорт" if self.lang == "RU" else "📄 Export")
+        self.export_btn.setText(t["export"])
         self.poster_label.setText(t["no_poster"])
         self.details_label.setText(f"<h2>{t['select_file']}</h2>")
         self.lang_btn.setText("EN" if self.lang == "RU" else "RU")
@@ -175,9 +175,9 @@ class MainWindow(QMainWindow):
     def delete_item(self):
         selected_items = self.list_widget.selectedItems()
         if not selected_items: return
-        msg = f"Удалить {len(selected_items)} записей?"
+        msg = f"Удалить {len(selected_items)} записей?" if self.lang == "RU" else f"Delete {len(selected_items)} items?"
         
-        dialog = CustomMessageBox(self, "Удаление", msg)
+        dialog = CustomMessageBox(self, TRANSLATIONS[self.lang]["delete"], msg)
         if dialog.exec_() == QDialog.Accepted:
             for item in selected_items:
                 title_id = item.data(Qt.UserRole)
@@ -214,7 +214,7 @@ class MainWindow(QMainWindow):
         title = crud.get_title(title_id)
         
         if title:
-            self.details_label.setText(f"<h3>{title.name}</h3><p><b>Тип:</b> {title.type} | <b>Год:</b> {title.year or '?'}</p>")
+            self.details_label.setText(f"<h3>{title.name}</h3><p><b>{TRANSLATIONS[self.lang]['select_file']}:</b> {title.type} | <b>Year:</b> {title.year or '?'}</p>")
             
             cached_poster = os.path.join(config.CACHE_DIR, f"{title.id}.jpg")
             local_poster = self.find_local_poster(title.file_path)
@@ -243,7 +243,7 @@ class MainWindow(QMainWindow):
             if not pixmap.isNull():
                 self.poster_label.setPixmap(pixmap.scaled(400, 600, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         except Exception:
-            self.poster_label.setText("Error")
+            self.poster_label.setText(TRANSLATIONS[self.lang]["error"])
             if config.CACHE_DIR in path:
                 try: os.remove(path)
                 except Exception: pass
@@ -251,7 +251,7 @@ class MainWindow(QMainWindow):
     def open_search_dialog(self):
         selected_items = self.list_widget.selectedItems()
         if not selected_items:
-            CustomMessageBox(self, "Внимание", "Сначала выберите файл в списке!").exec_()
+            CustomMessageBox(self, TRANSLATIONS[self.lang]["warning"], TRANSLATIONS[self.lang]["select_file_warn"]).exec_()
             return
             
         dialog = SearchDialog(self, self.lang)
@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
                 
                 if not poster_url.startswith("https://image.tmdb.org/"):
                     print(f"Security Warning: Blocked download from untrusted URL: {poster_url}")
-                    CustomMessageBox(self, "Ошибка безопасности", "Попытка скачать постер с недоверенного источника.").exec_()
+                    CustomMessageBox(self, TRANSLATIONS[self.lang]["error"], "Untrusted URL").exec_()
                     return
                 
                 try:
@@ -304,12 +304,12 @@ class MainWindow(QMainWindow):
             safe_path = os.path.abspath(title.file_path)
             
             if not os.path.isfile(safe_path):
-                CustomMessageBox(self, "Ошибка", "Файл не найден или был перемещен.").exec_()
+                CustomMessageBox(self, TRANSLATIONS[self.lang]["error"], TRANSLATIONS[self.lang]["file_not_found"]).exec_()
                 return
             
             allowed_exts = ('.mkv', '.mp4', '.avi', '.webm')
             if not safe_path.lower().endswith(allowed_exts):
-                CustomMessageBox(self, "Ошибка безопасности", "Недопустимый формат файла.").exec_()
+                CustomMessageBox(self, TRANSLATIONS[self.lang]["error"], TRANSLATIONS[self.lang]["invalid_format"]).exec_()
                 return
 
             try: 
@@ -321,7 +321,7 @@ class MainWindow(QMainWindow):
                     subprocess.Popen(["xdg-open", safe_path])
 
     def export_to_csv(self):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить CSV" if self.lang == "RU" else "Save CSV", "", "CSV Files (*.csv)")
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save CSV" if self.lang == "EN" else "Сохранить CSV", "", "CSV Files (*.csv)")
         if not file_path: return
         
         titles = crud.get_all_titles()
@@ -332,13 +332,13 @@ class MainWindow(QMainWindow):
                 for t in titles:
                     writer.writerow([t.name, t.year, t.type, t.file_path])
             
-            CustomMessageBox(self, "Успех" if self.lang == "RU" else "Success", "Данные успешно экспортированы в CSV!" if self.lang == "RU" else "Data successfully exported to CSV!").exec_()
+            CustomMessageBox(self, TRANSLATIONS[self.lang]["success"], TRANSLATIONS[self.lang]["export_success"]).exec_()
         except Exception as e:
-            CustomMessageBox(self, "Ошибка" if self.lang == "RU" else "Error", str(e)).exec_()
+            CustomMessageBox(self, TRANSLATIONS[self.lang]["error"], str(e)).exec_()
 
     def check_qbittorrent(self):
         if not self.settings.get("qbit_enabled"):
-            CustomMessageBox(self, "qBittorrent", "Интеграция отключена.").exec_()
+            CustomMessageBox(self, "qBittorrent", TRANSLATIONS[self.lang]["qbit_disabled"]).exec_()
             return
         
         conn_info = dict(
@@ -351,9 +351,9 @@ class MainWindow(QMainWindow):
             with qbittorrentapi.Client(**conn_info) as qbt_client:
                 torrents = qbt_client.torrents_info()
                 if not torrents:
-                    CustomMessageBox(self, "qBittorrent", "Список торрентов пуст.").exec_()
+                    CustomMessageBox(self, "qBittorrent", TRANSLATIONS[self.lang]["qbit_empty"]).exec_()
                     return
-                msg = "Активные загрузки:\n\n" + "\n".join([f"[{round(t.progress * 100, 1)}%] {t.name}" for t in torrents[:10]])
+                msg = "Active downloads:\n\n" + "\n".join([f"[{round(t.progress * 100, 1)}%] {t.name}" for t in torrents[:10]])
                 CustomMessageBox(self, "qBittorrent", msg).exec_()
         except Exception as e:
-            CustomMessageBox(self, "Ошибка", f"Не удалось подключиться.\n\n{e}").exec_()
+            CustomMessageBox(self, TRANSLATIONS[self.lang]["error"], f"{TRANSLATIONS[self.lang]['qbit_error']}\n\n{e}").exec_()
