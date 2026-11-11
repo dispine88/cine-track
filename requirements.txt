@@ -1,5 +1,4 @@
 PyQt5==5.15.11
-SQLAlchemy==2.0.30
 requests==2.32.3
 Pillow==10.3.0
 qbittorrent-api==2024.3.60

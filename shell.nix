@@ -31,7 +31,6 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.python312
     pkgs.python312Packages.pyqt5
-    pkgs.python312Packages.sqlalchemy
     pkgs.python312Packages.requests
     pkgs.python312Packages.pillow
     pkgs.python312Packages.qbittorrent-api

@@ -12,6 +12,7 @@
 - **Multilingual:** Full support for English and Russian languages.
 - **Built-in Player:** Double-click any movie to instantly play it (via MPV on Linux or default player on Windows).
 - **Setup Wizard:** A smooth onboarding process to configure your API key, language, and torrent client.
+- **CSV Export:** Export your local media library data to a CSV file.
 
 ## Security & Architecture
 - **Secure Secrets:** API keys and passwords are encrypted and stored in your OS's native credential manager (via Python `keyring`), never in plain-text files.
@@ -21,7 +22,7 @@
 ## Tech Stack
 - **Language:** Python 3.10+
 - **GUI:** PyQt5 (Qt5)
-- **Database:** SQLite + SQLAlchemy
+- **Database:** SQLite (raw sqlite3)
 - **Security:** Keyring, Python-dotenv
 - **Installer:** Inno Setup (Windows)
 
