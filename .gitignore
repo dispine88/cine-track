@@ -6,18 +6,27 @@ settings.json
 *.db
 *.sqlite
 
-# Cache
+# Cache and Python artifacts
 .cache_posters/
 __pycache__/
 *.py[cod]
 .venv/
 venv/
+.pytest_cache/
 
-# PyInstaller
+# PyInstaller and Inno Setup output
 build/
 dist/
+Output/
 *.spec
 
-# OS specific
+# Temporary/recovery files
+*.tmp
+settings.json.corrupt
+
+# OS-specific
 .DS_Store
 Thumbs.db
+
+# Private preparation notes (not project documentation)
+*W.md

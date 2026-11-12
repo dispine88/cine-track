@@ -1,79 +1,104 @@
 # CineTrack
 
-**CineTrack** is a powerful, locally-hosted media library manager built with Python and PyQt5. It is designed for movie and anime enthusiasts who want to keep their local files organized, visually appealing, and easily accessible.
+**CineTrack** is a local desktop media-library manager built with Python and PyQt5. It scans folders for video files, cleans filenames, lets users search TMDB for movie/series metadata and posters, and stores library metadata in SQLite.
 
 ![CineTrack Screenshot](image.png)
 
 ## Features
-- **Smart Local Scanning:** Automatically scans folders for video files (`.mkv`, `.mp4`, `.avi`, `.webm`) and cleans up filenames.
-- **TMDB Integration:** Fetches official movie/show posters and release years directly from The Movie Database.
-- **qBittorrent Support:** Connects to your local qBittorrent client to track active downloads (optional).
-- **Custom Modern UI:** A fully custom, frameless dark-mode interface with QSS styling.
-- **Multilingual:** Full support for English and Russian languages.
-- **Built-in Player:** Double-click any movie to instantly play it (via MPV on Linux or default player on Windows).
-- **Setup Wizard:** A smooth onboarding process to configure your API key, language, and torrent client.
-- **CSV Export:** Export your local media library data to a CSV file.
 
-## Security & Architecture
-- **Secure Secrets:** API keys and passwords are encrypted and stored in your OS's native credential manager (via Python `keyring`), never in plain-text files.
-- **Modular Codebase:** Clean MVC-like structure (`gui/`, `database/`, `config.py`) for maximum maintainability.
-- **Path Validation:** Strict checks prevent arbitrary code execution when launching video files.
+- Recursive scan of `.mkv`, `.mp4`, `.avi`, and `.webm` files.
+- TMDB search for movie and TV metadata and poster downloads.
+- Local poster lookup and cached remote posters.
+- Optional qBittorrent Web API integration.
+- Custom dark PyQt5 interface, additional dialogs, and RU/EN language switch.
+- CSV export of the local library.
+- SQLite storage with titles, genres, title-genre relations, and reviews.
+- Keyring-backed storage for API keys and qBittorrent credentials.
+- Application settings can be edited after the first launch.
 
-## Tech Stack
-- **Language:** Python 3.10+
-- **GUI:** PyQt5 (Qt5)
-- **Database:** SQLite (raw sqlite3)
-- **Security:** Keyring, Python-dotenv
-- **Installer:** Inno Setup (Windows)
+## Architecture
 
-## Installation (Windows)
-1. Go to the [Releases](https://github.com/dispine88/cine-track/releases) page.
-2. Download the latest `CineTrack_Setup.exe`.
-3. Run the installer and launch the app.
-4. Follow the Setup Wizard *(You will need a free TMDB API key to fetch posters)*.
+```text
+main.py
+  ├── config.py                  settings, paths and Keyring
+  ├── database/
+  │   ├── db.py                  SQLite connection and schema
+  │   └── crud.py                parameterized CRUD operations
+  └── gui/
+      ├── mainwindow.py         main application window
+      ├── dialogs.py            setup, search and input dialogs
+      ├── workers.py            background scan and network tasks
+      └── constants.py          RU/EN interface strings
+```
 
-### Linux (General: Ubuntu, Arch, Fedora, etc.)
-*Note: Make sure you have Python 3.10+, `pip`, and `mpv` installed on your system. Also, ensure you have a Secret Service provider (like `gnome-keyring` or `kwallet`) running for the secure keyring storage to work.*
+Slow operations (folder scanning, TMDB search/poster download, and qBittorrent requests) run in Qt's thread pool so the interface can continue processing events. Database writes performed by folder scanning are batched in a transaction.
 
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/dispine88/cine-track.git
-    cd cine-track
-    ```
-2. Create a virtual environment and install dependencies:
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements.txt
-    ```
-3. Run the application:
-    ```bash
-    python main.py
-    ```
-4. (Optional) Create a desktop shortcut:
-    ```bash
-    chmod +x install.sh
-    ./install.sh
-    ```
+## Requirements
 
-### ❄️ NixOS
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/dispine88/cine-track.git
-    cd cine-track
-    ```
-2. Run inside the Nix environment:
-    ```bash
-    nix-shell --run "python main.py"
-    ```
-3. (Optional) Install the desktop shortcut:
-    ```bash
-    chmod +x install.sh
-    ./install.sh
-    ```
+- Python 3.10+
+- Packages listed in `requirements.txt`
+- A running system credential manager for Keyring (Secret Service/KWallet on Linux, Windows Credential Manager on Windows, or Keychain on macOS)
+- Optional: qBittorrent Web UI enabled for the qBittorrent integration
+- Optional: a TMDB API key for remote metadata and posters
+
+## Run from source
+
+### Windows
+
+```powershell
+py -m venv .venv
+.venv\Scripts\activate
+py -m pip install -r requirements.txt
+py main.py
+```
+
+### Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python main.py
+```
+
+MPV is used for playback on Linux when available; otherwise CineTrack falls back to `xdg-open`. For a desktop launcher, run `chmod +x install.sh && ./install.sh` after preparing the Python environment. On NixOS, the launcher uses `shell.nix` when `/etc/NIXOS` and `nix-shell` are present.
+
+### macOS
+
+The source can be launched with a Python 3.10+ virtual environment using the commands above. macOS packaging and end-to-end testing are not currently provided. Video playback uses the system `open` command.
+
+## TMDB API key and secrets
+
+The Setup Wizard accepts a TMDB API key. Secrets are stored with Python `keyring` in the operating system's credential manager. In a source checkout only, `config.py` can also read `TMDB_API_KEY` from an ignored `.env` file; `.env.example` is a template and contains no real credentials. Do not commit `.env` or real API keys.
+
+The local library works without TMDB. Without an API key or network access, remote search and poster downloads are unavailable, while local scanning, SQLite storage, playback, and CSV export remain available.
+
+## Download
+
+Windows users can download the latest prebuilt installer from [GitHub Releases](https://github.com/dispine88/cine-track/releases).
+
+## Build the Windows installer (maintainers)
+
+This section is for developers who want to build the installer from source.
+
+Build Windows binaries on Windows. PyInstaller is not a cross-compiler.
+
+1. Install Python 3.10+ and Inno Setup.
+2. Run `build.bat`. It installs the runtime and build dependencies and creates `dist\\CineTrack`.
+3. Open `installer.iss` in Inno Setup and compile it (F9). The setup executable is written to the configured output directory.
+
+The PyInstaller build currently uses `onedir`; Inno Setup packages that directory into a Windows installer. `requirements.txt` is for running CineTrack, while `requirements-build.txt` adds PyInstaller for maintainers who create the installer.
+
+## Tests
+
+Run the SQLite tests from the project directory:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+GUI and network integration tests must also be performed on a machine with the project dependencies installed and the relevant services available.
 
 ## License
-This project is distributed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
----
-*Made with love for cinema and code.*
+MIT License. See [LICENSE](LICENSE).

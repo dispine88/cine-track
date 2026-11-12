@@ -1,38 +1,35 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# absolute path to this script
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 DESKTOP_DIR="$HOME/.local/share/applications"
 BIN_DIR="$HOME/.local/bin"
+mkdir -p "$DESKTOP_DIR" "$BIN_DIR"
 
-echo "Installing CineTrack in $DIR..."
-
-# creating folders
-mkdir -p "$DESKTOP_DIR"
-mkdir -p "$BIN_DIR"
-
-# 1. creating launch script
-cat << LAUNCHER > "$BIN_DIR/cinetrack"
+cat > "$BIN_DIR/cinetrack" <<LAUNCHER
 #!/usr/bin/env bash
-cd "$DIR"
-exec nix-shell --run "python main.py"
+set -e
+DIR="$DIR"
+cd "\$DIR"
+if [ -x "\$DIR/.venv/bin/python" ]; then
+    exec "\$DIR/.venv/bin/python" "\$DIR/main.py" "\$@"
+elif [ -e /etc/NIXOS ] && command -v nix-shell >/dev/null 2>&1; then
+    exec nix-shell "\$DIR/shell.nix" --run "python '\$DIR/main.py'"
+else
+    exec python3 "\$DIR/main.py" "\$@"
+fi
 LAUNCHER
-
-# making him executable
 chmod +x "$BIN_DIR/cinetrack"
 
-# 2. creating label (.desktop)
-cat << DESKTOP > "$DESKTOP_DIR/cinetrack.desktop"
+cat > "$DESKTOP_DIR/cinetrack.desktop" <<DESKTOP
 [Desktop Entry]
 Name=CineTrack
 Comment=Local Media Tracker
-Exec=$BIN_DIR/cinetrack
+Exec="$BIN_DIR/cinetrack"
 Icon=video-x-generic
 Terminal=false
 Type=Application
 Categories=AudioVideo;Player;
 DESKTOP
 
-echo "Success! CineTrack is added to your applications menu."
-echo "You can also run it from the terminal with the command: cinetrack"
+echo "CineTrack launcher installed: $BIN_DIR/cinetrack"

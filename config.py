@@ -1,63 +1,124 @@
+"""Application paths, settings and secret loading for CineTrack."""
+from __future__ import annotations
+
+import json
 import os
 import sys
-import json
+import tempfile
+from pathlib import Path
+from typing import Any
+
 import keyring
+from keyring.errors import PasswordDeleteError
 from dotenv import load_dotenv
-
-if getattr(sys, 'frozen', False):
-    appdata = os.getenv('APPDATA')
-    APP_DIR = os.path.join(appdata, "CineTrack")
-else:
-    APP_DIR = os.path.dirname(os.path.abspath(__file__))
-
-os.makedirs(APP_DIR, exist_ok=True)
-
-SETTINGS_FILE = os.path.join(APP_DIR, 'settings.json')
-CACHE_DIR = os.path.join(APP_DIR, ".cache_posters")
-os.makedirs(CACHE_DIR, exist_ok=True)
 
 SERVICE_NAME = "CineTrack"
 
-TMDB_API_KEY = ""
-QBIT_PASS = ""
 
-if os.path.exists(SETTINGS_FILE):
+def _application_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        base = os.environ.get("APPDATA") or str(Path.home())
+        return Path(base) / SERVICE_NAME
+    return Path(__file__).resolve().parent
+
+
+APP_DIR = _application_dir()
+APP_DIR.mkdir(parents=True, exist_ok=True)
+SETTINGS_FILE = APP_DIR / "settings.json"
+CACHE_DIR = APP_DIR / ".cache_posters"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+DB_PATH = APP_DIR / "cinetrack.db"
+
+
+def load_settings() -> dict[str, Any]:
+    """Read settings; recover gracefully if the JSON file is malformed."""
+    if not SETTINGS_FILE.exists():
+        return {}
     try:
-        with open(SETTINGS_FILE, 'r') as f:
-            settings_data = json.load(f)
-            
-        migrated = False
-        
-        if "tmdb_api_key" in settings_data and settings_data["tmdb_api_key"]:
-            keyring.set_password(SERVICE_NAME, "tmdb_api_key", settings_data["tmdb_api_key"])
-            del settings_data["tmdb_api_key"]
-            migrated = True
-            
-        if "qbit_pass" in settings_data and settings_data["qbit_pass"]:
-            keyring.set_password(SERVICE_NAME, "qbit_pass", settings_data["qbit_pass"])
-            del settings_data["qbit_pass"]
-            migrated = True
-            
-        if migrated:
-            with open(SETTINGS_FILE, 'w') as f:
-                json.dump(settings_data, f, indent=4)
-            print("[KEYRING] Секреты успешно перенесены в системное хранилище.")
-            
-    except Exception as e:
-        print(f"[KEYRING] Ошибка при миграции: {e}")
+        with SETTINGS_FILE.open("r", encoding="utf-8") as stream:
+            data = json.load(stream)
+        if not isinstance(data, dict):
+            raise ValueError("Settings file must contain a JSON object")
+        return data
+    except (OSError, json.JSONDecodeError, ValueError):
+        backup = SETTINGS_FILE.with_suffix(".json.corrupt")
+        try:
+            if backup.exists():
+                backup.unlink()
+            SETTINGS_FILE.replace(backup)
+        except OSError:
+            pass
+        return {}
 
-try:
-    TMDB_API_KEY = keyring.get_password(SERVICE_NAME, "tmdb_api_key") or ""
-    QBIT_PASS = keyring.get_password(SERVICE_NAME, "qbit_pass") or "adminadmin"
-except Exception:
-    pass
 
-if not TMDB_API_KEY:
-    load_dotenv(os.path.join(APP_DIR, '.env'))
-    load_dotenv()
-    TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")
+def save_settings(data: dict[str, Any]) -> None:
+    """Atomically write non-secret settings to avoid truncated JSON files."""
+    fd, temp_name = tempfile.mkstemp(prefix="settings_", suffix=".tmp", dir=APP_DIR)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(data, stream, indent=4, ensure_ascii=False)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp_name, SETTINGS_FILE)
+    except Exception:
+        try:
+            os.unlink(temp_name)
+        except OSError:
+            pass
+        raise
 
-if not TMDB_API_KEY:
-    print(f"\n[WARNING] API ключ TMDB не найден.")
-    print(f"[WARNING] Пожалуйста, создайте файл .env по этому пути: {os.path.join(APP_DIR, '.env')}")
-    print(f"[WARNING] И добавьте туда строку: TMDB_API_KEY=твой_ключ\n")
+
+def get_secret(name: str, default: str = "") -> str:
+    try:
+        return keyring.get_password(SERVICE_NAME, name) or default
+    except Exception:
+        return default
+
+
+def set_secret(name: str, value: str) -> None:
+    """Store a secret in Keyring, or remove it when an empty value is supplied."""
+    if value:
+        keyring.set_password(SERVICE_NAME, name, value)
+        return
+
+    try:
+        keyring.delete_password(SERVICE_NAME, name)
+    except PasswordDeleteError:
+        # The credential did not exist; this is already the desired state.
+        pass
+
+
+def reload_secrets() -> None:
+    """Refresh module-level secrets after the user edits application settings."""
+    global TMDB_API_KEY, QBIT_PASS
+
+    env_key = os.getenv("TMDB_API_KEY", "") if not getattr(sys, "frozen", False) else ""
+    TMDB_API_KEY = get_secret("tmdb_api_key") or env_key
+    QBIT_PASS = get_secret("qbit_pass")
+
+
+def _migrate_legacy_secrets() -> None:
+    """Move old plaintext secrets out of settings.json when Keyring is usable."""
+    data = load_settings()
+    changed = False
+    for name in ("tmdb_api_key", "qbit_pass"):
+        value = data.get(name)
+        if value:
+            try:
+                keyring.set_password(SERVICE_NAME, name, str(value))
+            except Exception:
+                # Never remove a legacy value unless Keyring accepted it.
+                continue
+            data.pop(name, None)
+            changed = True
+    if changed:
+        save_settings(data)
+
+
+_migrate_legacy_secrets()
+
+# Development fallback only. Packaged users should use the OS keyring.
+if not getattr(sys, "frozen", False):
+    load_dotenv(APP_DIR / ".env")
+
+reload_secrets()
