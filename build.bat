@@ -10,6 +10,15 @@ if errorlevel 1 goto :error
 
 echo.
 echo =========================================
+echo VERIFYING SOURCE AND TESTS
+echo =========================================
+py -m compileall -q main.py config.py gui database tests
+if errorlevel 1 goto :error
+py -m unittest discover -s tests -v
+if errorlevel 1 goto :error
+
+echo.
+echo =========================================
 echo CLEANING PREVIOUS BUILD
 echo =========================================
 if exist build rmdir /s /q build
@@ -25,7 +34,7 @@ if errorlevel 1 goto :error
 
 echo.
 echo Build completed: dist\CineTrack\CineTrack.exe
-echo Next: open installer.iss in Inno Setup and compile it with F9.
+echo Run build_setup.bat to compile the Inno Setup installer.
 pause
 exit /b 0
 

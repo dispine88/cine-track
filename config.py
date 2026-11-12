@@ -8,9 +8,20 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-import keyring
-from keyring.errors import PasswordDeleteError
-from dotenv import load_dotenv
+try:
+    import keyring
+    from keyring.errors import PasswordDeleteError
+except ImportError:  # Keep local database tools usable without the optional runtime extra.
+    keyring = None
+
+    class PasswordDeleteError(Exception):
+        pass
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*_args, **_kwargs):
+        return False
 
 SERVICE_NAME = "CineTrack"
 
@@ -77,6 +88,8 @@ def get_secret(name: str, default: str = "") -> str:
 
 def set_secret(name: str, value: str) -> None:
     """Store a secret in Keyring, or remove it when an empty value is supplied."""
+    if keyring is None:
+        raise RuntimeError("The Keyring package is not installed")
     if value:
         keyring.set_password(SERVICE_NAME, name, value)
         return
@@ -92,7 +105,12 @@ def reload_secrets() -> None:
     """Refresh module-level secrets after the user edits application settings."""
     global TMDB_API_KEY, QBIT_PASS
 
-    env_key = os.getenv("TMDB_API_KEY", "") if not getattr(sys, "frozen", False) else ""
+    settings = load_settings()
+    allow_env_fallback = (
+        not getattr(sys, "frozen", False)
+        and not settings.get("tmdb_api_key_disabled", False)
+    )
+    env_key = os.getenv("TMDB_API_KEY", "") if allow_env_fallback else ""
     TMDB_API_KEY = get_secret("tmdb_api_key") or env_key
     QBIT_PASS = get_secret("qbit_pass")
 

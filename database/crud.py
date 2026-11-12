@@ -6,6 +6,9 @@ from typing import Optional, Iterable
 from database.db import get_connection
 
 
+_UNSET = object()
+
+
 @dataclass
 class Title:
     id: int
@@ -41,6 +44,9 @@ def add_title(name, type="manual", status="want", file_path=None):
     if not clean_name:
         raise ValueError("Title name cannot be empty")
     with get_connection() as conn:
+        # Acquire the write reservation before checking for duplicates.
+        # This serializes concurrent importers and closes the SELECT/INSERT race.
+        conn.execute("BEGIN IMMEDIATE")
         if file_path:
             candidate_key = normalize_file_path(file_path)
             existing_paths = conn.execute(
@@ -69,6 +75,7 @@ def add_titles_bulk(records: Iterable[dict]) -> int:
 
     added = 0
     with get_connection() as conn:
+        conn.execute("BEGIN IMMEDIATE")
         existing = conn.execute(
             "SELECT file_path FROM titles WHERE file_path IS NOT NULL"
         ).fetchall()
@@ -96,6 +103,7 @@ def merge_duplicate_file_paths():
     """
     merged = []
     with get_connection() as conn:
+        conn.execute("BEGIN IMMEDIATE")
         rows = conn.execute(
             "SELECT id, name, year, type, status, file_path, poster_url "
             "FROM titles WHERE file_path IS NOT NULL ORDER BY id"
@@ -170,8 +178,9 @@ def delete_titles(title_ids):
     return deleted
 
 
-def update_title_info(title_id, year=None, poster_url=None, name=None,
-                      title_type=None, status=None):
+def update_title_info(title_id, year=_UNSET, poster_url=_UNSET, name=_UNSET,
+                      title_type=_UNSET, status=_UNSET):
+    """Update selected title fields; pass None explicitly to clear nullable fields."""
     fields = {
         "year": year,
         "poster_url": poster_url,
@@ -179,9 +188,11 @@ def update_title_info(title_id, year=None, poster_url=None, name=None,
         "type": title_type,
         "status": status,
     }
-    updates = [(column, value) for column, value in fields.items() if value is not None]
+    updates = [(column, value) for column, value in fields.items() if value is not _UNSET]
     if not updates:
         return False
+    if any(column == "name" and value is None for column, value in updates):
+        raise ValueError("Title name cannot be NULL")
     sql = ", ".join(f"{column} = ?" for column, _ in updates)
     values = [value for _, value in updates] + [title_id]
     with get_connection() as conn:
@@ -273,14 +284,17 @@ def get_reviews(title_id=None):
         return [dict(row) for row in rows]
 
 
-def update_review(review_id, rating=None, text=None):
-    if rating is not None and not 1 <= int(rating) <= 10:
-        raise ValueError("Rating must be between 1 and 10")
+def update_review(review_id, rating=_UNSET, text=_UNSET):
+    """Update review fields; pass None explicitly to clear a nullable value."""
+    if rating is not _UNSET and rating is not None:
+        rating = int(rating)
+        if not 1 <= rating <= 10:
+            raise ValueError("Rating must be between 1 and 10")
     updates = []
-    if rating is not None:
-        updates.append(("rating", int(rating)))
-    if text is not None:
-        updates.append(("text", text.strip()))
+    if rating is not _UNSET:
+        updates.append(("rating", rating))
+    if text is not _UNSET:
+        updates.append(("text", text.strip() if isinstance(text, str) else text))
     if not updates:
         return False
     assignments = ", ".join(f"{column} = ?" for column, _ in updates)

@@ -18,8 +18,9 @@ import config
 from database import crud
 from gui.constants import TRANSLATIONS
 from gui.dialogs import (
-    CustomInputDialog, CustomMessageBox, CustomTitleBar, SearchDialog, SetupWizard,
+    CustomInputDialog, CustomMessageBox, CustomTitleBar, SearchDialog,
 )
+from gui.settings_dialog import SettingsDialog
 from gui.workers import (
     FunctionWorker, download_posters_task, export_csv_task, qbittorrent_task, scan_folder_task,
 )
@@ -48,7 +49,7 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout(main_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.title_bar = CustomTitleBar(self, "CineTrack - Local Media", settings_callback=self.open_settings)
+        self.title_bar = CustomTitleBar(self, "CineTrack - Local Media")
         main_layout.addWidget(self.title_bar)
 
         content_widget = QWidget()
@@ -67,11 +68,13 @@ class MainWindow(QMainWindow):
         self.qbit_btn.clicked.connect(self.check_qbittorrent)
         self.export_btn = QPushButton()
         self.export_btn.clicked.connect(self.export_to_csv)
+        self.settings_btn = QPushButton()
+        self.settings_btn.clicked.connect(self.open_settings)
         self.lang_btn = QPushButton()
         self.lang_btn.setFixedWidth(50)
         self.lang_btn.clicked.connect(self.toggle_language)
         for button in (self.scan_btn, self.add_btn, self.search_btn,
-                       self.qbit_btn, self.export_btn, self.lang_btn):
+                       self.qbit_btn, self.export_btn, self.settings_btn, self.lang_btn):
             top_layout.addWidget(button)
         content_layout.addLayout(top_layout)
 
@@ -131,32 +134,26 @@ class MainWindow(QMainWindow):
         self.play_btn.setText(text["play"])
         self.qbit_btn.setText(text["qbit"])
         self.export_btn.setText(text["export"])
+        self.settings_btn.setText("⚙ Настройки" if self.lang == "RU" else "⚙ Settings")
         self.poster_label.setText(text["no_poster"])
         self.details_label.setText(f"<h2>{escape(text['select_file'])}</h2>")
         self.lang_btn.setText("EN" if self.lang == "RU" else "RU")
 
     def open_settings(self):
-        """Open the setup wizard in edit mode and persist changed preferences."""
-        dialog = SetupWizard(self, initial_settings=self.settings, editing=True)
+        """Open the compact settings editor and persist secrets through Keyring."""
+        dialog = SettingsDialog(self, self.settings)
         if dialog.exec_() != QDialog.Accepted:
             return
 
         data = dialog.settings_data.copy()
-        tmdb_key = data.pop("tmdb_api_key", "").strip()
-        qbit_password = data.pop("qbit_pass", "")
-        if not data.get("qbit_enabled"):
-            qbit_password = ""
-
         secret_names = ("tmdb_api_key", "qbit_pass")
         old_secrets = {name: config.get_secret(name) for name in secret_names}
         try:
-            if tmdb_key or config.get_secret("tmdb_api_key"):
-                config.set_secret("tmdb_api_key", tmdb_key)
-            if qbit_password or config.get_secret("qbit_pass"):
-                config.set_secret("qbit_pass", qbit_password)
+            config.set_secret("tmdb_api_key", dialog.tmdb_api_key)
+            config.set_secret("qbit_pass", dialog.qbit_password)
             config.save_settings(data)
         except Exception as exc:
-            # Best-effort rollback so a failed save does not leave half-updated credentials.
+            # Restore both credentials if one write or the settings file failed.
             for name, old_value in old_secrets.items():
                 try:
                     config.set_secret(name, old_value)
@@ -164,20 +161,15 @@ class MainWindow(QMainWindow):
                     pass
             self.show_message(
                 "error",
-                ("Не удалось сохранить настройки. Проверьте доступ к системному хранилищу. "
+                ("Не удалось сохранить настройки. Проверьте системное хранилище паролей. "
                  if self.lang == "RU" else
-                 "Could not save settings. Check access to the system credential manager. ")
+                 "Could not save settings. Check the system credential manager. ")
                 + f"({type(exc).__name__})",
             )
             return
 
         config.reload_secrets()
         self.settings = data
-        self.lang = data.get("language", "RU")
-        if self.lang not in TRANSLATIONS:
-            self.lang = "RU"
-        self.update_ui_text()
-        self.load_data()
         self.statusBar().showMessage(
             "Настройки сохранены" if self.lang == "RU" else "Settings saved", 5000
         )

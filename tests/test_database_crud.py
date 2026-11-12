@@ -1,10 +1,11 @@
 """Isolated tests for CineTrack's SQLite CRUD layer."""
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
-from database import db, crud
+from database import db, crud, seed
 
 
 class DatabaseCrudTests(unittest.TestCase):
@@ -50,6 +51,8 @@ class DatabaseCrudTests(unittest.TestCase):
         self.assertEqual(crud.get_reviews(title.id)[0]["rating"], 9)
         self.assertTrue(crud.update_review(review_id, rating=10, text="Excellent"))
         self.assertEqual(crud.get_reviews(title.id)[0]["rating"], 10)
+        self.assertTrue(crud.update_review(review_id, rating=None))
+        self.assertIsNone(crud.get_reviews(title.id)[0]["rating"])
         self.assertTrue(crud.delete_title(title.id))
         self.assertEqual(crud.get_reviews(title.id), [])
 
@@ -90,6 +93,42 @@ class DatabaseCrudTests(unittest.TestCase):
         with db.get_connection() as conn:
             self.assertEqual(conn.execute("PRAGMA foreign_keys").fetchone()[0], 1)
             self.assertEqual(conn.execute("PRAGMA integrity_check").fetchone()[0], "ok")
+
+    def test_concurrent_add_title_does_not_create_duplicate_paths(self):
+        path = str(Path(self.temp_dir.name) / "shared.mkv")
+        def add(index):
+            return crud.add_title(f"Copy {index}", file_path=path)
+
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            results = list(pool.map(add, range(6)))
+        self.assertEqual(sum(results), 1)
+        self.assertEqual(len(crud.get_all_titles()), 1)
+
+    def test_nullable_title_fields_can_be_cleared(self):
+        crud.add_title("Movie", file_path="/media/movie.mkv")
+        title = crud.get_all_titles()[0]
+        crud.update_title_info(
+            title.id, year=2020, poster_url="https://image.tmdb.org/poster.jpg"
+        )
+        self.assertTrue(crud.update_title_info(title.id, year=None, poster_url=None))
+        updated = crud.get_title(title.id)
+        self.assertIsNone(updated.year)
+        self.assertIsNone(updated.poster_url)
+
+    def test_seed_fills_partial_database_and_is_idempotent(self):
+        with db.get_connection() as conn:
+            conn.execute(
+                "INSERT INTO titles(name, year, type, status) VALUES (?, ?, ?, ?)",
+                ("Interstellar", 2014, "movie", "watched"),
+            )
+        self.assertEqual(seed.seed_data(), 2)
+        self.assertEqual(seed.seed_data(), 0)
+        self.assertEqual(len(crud.get_all_titles()), 3)
+
+    def test_schema_version_is_recorded(self):
+        with db.get_connection() as conn:
+            version = conn.execute("PRAGMA user_version").fetchone()[0]
+        self.assertEqual(version, db.SCHEMA_VERSION)
 
 
 if __name__ == "__main__":

@@ -5,6 +5,9 @@ from contextlib import contextmanager
 from config import DB_PATH
 
 
+SCHEMA_VERSION = 1
+
+
 @contextmanager
 def get_connection():
     """Yield a configured connection and always commit/rollback and close it."""
@@ -23,7 +26,17 @@ def get_connection():
 
 
 def init_db():
+    """Create the current schema and mark the initial schema version.
+
+    Future structural changes should be added as explicit migrations keyed by
+    PRAGMA user_version rather than relying on CREATE TABLE IF NOT EXISTS.
+    """
     with get_connection() as conn:
+        current_version = conn.execute("PRAGMA user_version").fetchone()[0]
+        if current_version > SCHEMA_VERSION:
+            raise RuntimeError(
+                f"Database schema version {current_version} is newer than this app supports"
+            )
         conn.execute("PRAGMA journal_mode = WAL")
         conn.execute("PRAGMA synchronous = NORMAL")
         conn.execute(
@@ -64,3 +77,5 @@ def init_db():
         conn.execute("CREATE INDEX IF NOT EXISTS idx_titles_name ON titles(name)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_reviews_title_id ON reviews(title_id)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_title_genres_genre_id ON title_genres(genre_id)")
+        if current_version < SCHEMA_VERSION:
+            conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")

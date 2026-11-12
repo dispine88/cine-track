@@ -1,21 +1,34 @@
+"""Idempotent sample data for manual development and demonstrations."""
 from database.db import get_connection, init_db
 
-def seed_data():
-    init_db()
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT COUNT(*) FROM titles")
-        if cursor.fetchone()[0] > 0:
-            print("Database already seeded.")
-            return
 
-        cursor.execute("INSERT INTO titles (name, year, type, status) VALUES (?, ?, ?, ?)", ("Interstellar", 2014, "movie", "watched"))
-        cursor.execute("INSERT INTO titles (name, year, type, status) VALUES (?, ?, ?, ?)", ("Breaking Bad", 2008, "series", "watched"))
-        cursor.execute("INSERT INTO titles (name, year, type, status) VALUES (?, ?, ?, ?)", ("John Wick", 2014, "movie", "want"))
-        
-        conn.commit()
-        print("Database successfully seeded.")
+SAMPLE_TITLES = (
+    ("Interstellar", 2014, "movie", "watched"),
+    ("Breaking Bad", 2008, "series", "watched"),
+    ("John Wick", 2014, "movie", "want"),
+)
+
+
+def seed_data() -> int:
+    """Insert missing sample titles without duplicating a partially seeded DB."""
+    init_db()
+    added = 0
+    with get_connection() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        for name, year, media_type, status in SAMPLE_TITLES:
+            exists = conn.execute(
+                "SELECT 1 FROM titles WHERE name = ? COLLATE NOCASE AND year = ? AND type = ? LIMIT 1",
+                (name, year, media_type),
+            ).fetchone()
+            if exists is None:
+                conn.execute(
+                    "INSERT INTO titles (name, year, type, status) VALUES (?, ?, ?, ?)",
+                    (name, year, media_type, status),
+                )
+                added += 1
+    return added
+
 
 if __name__ == "__main__":
-    seed_data()
+    count = seed_data()
+    print(f"Inserted {count} sample title(s)." if count else "Sample data already present.")

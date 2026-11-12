@@ -1,23 +1,30 @@
 # Windows smoke-test checklist
 
-Run this after extracting the maintenance archive over your existing checkout and rebuilding the installer.
+Use a disposable media folder first. Do not use the only copy of a personal media collection for delete tests.
 
-1. Create/activate the project virtual environment and install `requirements.txt`.
-2. Run `py main.py`. On first run, switch RU/EN in the Setup Wizard, leave TMDB empty, leave qBittorrent disabled, finish setup, and verify the local library window opens.
-3. Re-run and verify the wizard does not appear again. Check that `settings.json` contains ordinary settings only and secrets are in Windows Credential Manager.
-4. Scan a test folder containing a few supported videos and one unsupported file. Verify the supported files appear and the unsupported file does not.
-5. Scan the same folder again. Verify that no duplicate entries are added and the window remains responsive during scanning.
-6. Select a local video and use Delete. Verify the entry disappears from CineTrack but the original video remains on disk.
-7. With a valid TMDB key and network access, search for a known title and apply a result. Verify the poster is cached and the year is updated. Repeat with network access disabled: the interface should remain responsive and show an error.
-8. Export the library to CSV. Verify the file opens correctly in Excel/LibreOffice and includes UTF-8 text.
-9. If qBittorrent Web UI is configured, test a successful connection. Then stop the Web UI and verify CineTrack reports an error without freezing for an extended period.
-10. Build with `build.bat`, compile `installer.iss` in Inno Setup, install the result, launch it, and verify the database/settings are created under the user's AppData directory.
+## First launch and settings
 
-Do not use a real media library for the first deletion test. Use a disposable test folder.
+1. Create a Python 3.10+ environment, install `requirements.txt`, and run `py main.py`.
+2. Complete the first-run Setup Wizard with qBittorrent disabled. Verify the main window opens.
+3. Re-open CineTrack. Verify the first-run wizard does not appear again.
+4. Open **Settings** from the main toolbar. Confirm the window has only TMDB API and qBittorrent sections; no page counter or Next/Back navigation.
+5. Change the TMDB key, save, and run a search. Clear the key, save, restart, and verify that the source `.env` fallback is not silently re-enabled after an explicit clear.
+6. Enable qBittorrent and enter the Web UI host, port, username, and password. Save and test the connection. Disable integration and save; verify the stored password is removed.
 
-## Settings editing and duplicate regression
+## Main features
 
-- Open Settings from the main window after first-run setup; change the TMDB key and confirm Search uses the new key without deleting settings.json.
-- Change qBittorrent host, port, username, and password; verify the new credentials are used. Disable qBittorrent and confirm the stored password is removed.
-- Scan a folder, attach a TMDB poster to one video, then scan the same folder again. The row count should not increase and the poster should remain attached.
-- If older duplicate rows already exist for the same physical path, run one folder scan; duplicate rows should merge, preserving the record with poster metadata, reviews, and genre links.
+7. Scan a test folder containing supported videos (`.mkv`, `.mp4`, `.avi`, `.webm`) and an unsupported file. Only supported videos should be added.
+8. Scan the same folder again. The row count should not increase; the interface should remain responsive.
+9. Select a record, search TMDB, and apply a result. Verify poster and year appear. Repeat with the network disconnected; the app should show an error without freezing.
+10. Attach a poster, scan the folder again, and verify the record and poster remain. For legacy duplicate rows, one scan should merge duplicates while preserving poster metadata, reviews, and genre links.
+11. Delete a library record. Verify the database entry and poster cache are removed but the original video file remains on disk.
+12. Export CSV with Cyrillic names and open it in Excel or LibreOffice. Verify the text is readable.
+
+## Build and installer
+
+13. Run `build.bat`. It installs pinned build/runtime requirements, compiles the source, runs the automated tests, and builds `dist\CineTrack`.
+14. Run `build_setup.bat` (or open `installer.iss` in Inno Setup and press F9). Verify `Output\CineTrack_Setup.exe` is created.
+15. Install the setup on a test Windows account, launch CineTrack, and verify settings/database are created under the user's AppData directory.
+16. Uninstall and verify the application is removed. User data in AppData should be handled deliberately before deleting it; do not assume uninstall removes it.
+
+The automated suite checks the database/configuration layer and mocked worker logic. It does not replace this real Windows GUI, Keyring, TMDB, qBittorrent, and installer smoke test.

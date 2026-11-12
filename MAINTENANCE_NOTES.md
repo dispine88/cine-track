@@ -1,36 +1,23 @@
 # Maintenance notes
 
-## Changes in this maintenance build
+Baseline: `feature/raw-sql` commit `37d494a` (`refactor: added tests & fixed bugs`). Changes in this folder are local working-copy updates only.
 
-- Moved folder scanning, TMDB search, poster downloads, and qBittorrent requests to `QThreadPool` workers.
-- Added connect/read timeouts to TMDB and qBittorrent HTTP calls.
-- Changed folder import to a single SQLite transaction with path de-duplication.
-- Ensured SQLite connections enable foreign keys, apply a busy timeout, and are always closed.
-- Added missing CRUD functions for genres, title-genre associations, and reviews.
-- Deleting a media-library entry no longer deletes the original video file; it removes metadata and the cached poster only.
-- Fixed Setup Wizard port validation and disabled qBittorrent fields when integration is off.
-- Removed the default qBittorrent password from the wizard/configuration.
-- Centered custom dialogs over their parent windows.
-- Replaced the temporary-buffer QImage conversion with direct QPixmap file loading.
-- Added atomic settings writes and graceful handling of a damaged settings JSON file.
-- Added an in-app Settings action that reuses the Setup Wizard to edit TMDB, qBittorrent, and language preferences after installation.
-- Added canonical file-path identity and a rescan-time merge for legacy duplicates; poster cache files are migrated to the surviving record.
-- Added a build requirements file and explicit error handling to `build.bat`.
-- Updated Linux launcher behavior and documentation for current platform support.
+## Current build
 
-## Validation performed in the editing environment
+- Settings is a compact editor for TMDB and qBittorrent; the first-run Setup Wizard remains separate.
+- SQLite connections enable foreign keys and an 8-second busy timeout, use WAL, and always close.
+- File-path deduplication begins with `BEGIN IMMEDIATE` so simultaneous importers cannot pass the duplicate check together.
+- Nullable title and review fields can be explicitly cleared by passing `None`; omitted arguments remain unchanged.
+- Sample seed data fills missing entries and is safe to run more than once.
+- `PRAGMA user_version` records the initial schema version. Future schema changes need explicit migration functions.
+- Worker failures are recorded to `cinetrack.log` using exception types and traceback frames only; raw exception messages are omitted to avoid logging credential-bearing request URLs.
+- Explicitly clearing the TMDB key sets a preference that suppresses the source-only `.env` fallback, so a removed key does not silently reappear.
+- qBittorrent and TMDB operations run off the UI thread with network timeouts.
 
-- Python compilation and AST parsing completed successfully.
-- SQLite smoke tests passed for title CRUD, bulk import/de-duplication, genres, associations, reviews, foreign-key enforcement, and database integrity.
-- A `unittest` suite is included in `tests/` and covers SQLite CRUD, relationships, de-duplication, and foreign-key enforcement. Worker tasks were additionally smoke-tested with mocked HTTP/API responses.
+## Validation
 
-## Validation still required on a desktop machine
+Run `python -m compileall -q main.py config.py gui database tests` and `python -m unittest discover -s tests -v` before building. The build script checks only project modules and tests, not the local virtual environment.
 
-The editing environment did not have PyQt5 or `qbittorrent-api` installed, and network access prevented installing them. Therefore the GUI was not launched here. Before publishing this build, run the application on Windows and Linux, test the Setup Wizard, scan a sample folder, TMDB search/poster download, qBittorrent timeout behavior, CSV export, and compile the installer with Inno Setup.
+The 18-test suite covers SQLite CRUD, duplicate imports, concurrent duplicate insertion, metadata clearing, partial/idempotent seeding, relationships, foreign-key enforcement, schema versioning, CSV encoding, TMDB response validation, and worker helpers.
 
-This archive contains source code only. It does not contain `.env`, `.git`, a database with personal data, PyInstaller output, or an installer binary. No commit, push, pull request, or other change was made to the GitHub repository.
-
-
-### Settings button visibility
-
-The Settings action is placed in the custom title bar next to the window controls. This keeps it visible even when the main toolbar is crowded. It opens the existing Setup Wizard in edit mode.
+A Windows GUI smoke test is still required for the actual PyQt window, TMDB, qBittorrent, and installed application. Build with `build.bat`, then run `build_setup.bat` (or compile `installer.iss` in Inno Setup). The Linux editing environment cannot produce a genuine Windows installer.

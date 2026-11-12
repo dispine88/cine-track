@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import csv
+import datetime
 import os
 import re
 import tempfile
+import traceback
 from io import BytesIO
 from pathlib import Path
 from urllib.parse import urlparse
@@ -43,6 +45,17 @@ class FunctionWorker(QRunnable):
         try:
             self.signals.result.emit(self.function(*self.args, **self.kwargs))
         except Exception as exc:  # UI receives a safe, non-secret-bearing error.
+            # Store type and traceback frames only; exception text may contain API URLs
+            # or credentials and must not be copied into a log file.
+            try:
+                log_path = Path(config.APP_DIR) / "cinetrack.log"
+                stamp = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+                task_name = getattr(self.function, "__name__", type(self.function).__name__)
+                frames = "".join(traceback.format_tb(exc.__traceback__))
+                with log_path.open("a", encoding="utf-8") as stream:
+                    stream.write(f"[{stamp}] {task_name} failed: {type(exc).__name__}\n{frames}\n")
+            except OSError:
+                pass
             self.signals.error.emit(type(exc).__name__)
         finally:
             self.signals.finished.emit(self.job_id)
@@ -110,10 +123,17 @@ def search_tmdb_task(query: str, api_key: str) -> list[dict]:
     except (requests.RequestException, ValueError) as exc:
         raise RuntimeError("TMDB request failed") from exc
 
+    if not isinstance(payload, dict):
+        raise RuntimeError("TMDB returned an unexpected response")
     results = payload.get("results", [])
+    if not isinstance(results, list):
+        return []
     # The multi-search endpoint also returns people; this app catalogues
-    # movies and TV shows only.
-    return [item for item in results if item.get("media_type") in ("movie", "tv")][:10]
+    # movies and TV shows only. Ignore malformed entries defensively.
+    return [
+        item for item in results
+        if isinstance(item, dict) and item.get("media_type") in ("movie", "tv")
+    ][:10]
 
 
 def _year_from_result(result: dict):
@@ -182,8 +202,13 @@ def download_posters_task(result: dict, title_ids: list[int]) -> dict:
                     pass
 
     updated = 0
+    metadata_updates = {}
+    if year is not None:
+        metadata_updates["year"] = year
+    if poster_url is not None:
+        metadata_updates["poster_url"] = poster_url
     for title_id in title_ids:
-        if crud.update_title_info(title_id, year=year, poster_url=poster_url):
+        if metadata_updates and crud.update_title_info(title_id, **metadata_updates):
             updated += 1
     return {"updated": updated, "poster_saved": bool(poster_url)}
 
