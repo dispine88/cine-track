@@ -18,17 +18,17 @@ CineTrack is a local desktop media-library manager built with Python and PyQt5. 
 ## Architecture
 
 ```text
-main.py              application entry point and first-run setup
+main.py               application entry point and first-run setup
 gui/
-  mainwindow.py      main window and user actions
-  dialogs.py        first-run setup, search, input and message dialogs
-  settings_dialog.py compact settings editor
-  workers.py        scanning, TMDB, poster, CSV and qBittorrent tasks
+  mainwindow.py       main window and user actions
+  dialogs.py          first-run setup, search, input and message dialogs
+  settings_dialog.py  compact settings editor
+  workers.py          scanning, TMDB, poster, CSV and qBittorrent tasks
 database/
-  db.py              SQLite connection, schema and version
-  crud.py            parameterized CRUD operations
-config.py            paths, JSON preferences and Keyring
-style.qss            application theme
+  db.py               SQLite connection, schema and version
+  crud.py             parameterized CRUD operations
+config.py             paths, JSON preferences and Keyring
+style.qss             application theme
 ```
 
 Folder scanning, TMDB requests, poster downloads, CSV export, and qBittorrent requests run in the Qt thread pool so the interface stays responsive. SQLite writes use transactions; connections enable foreign keys, a busy timeout, and WAL mode.
@@ -61,7 +61,11 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
-MPV is used for playback on Linux when available; otherwise CineTrack falls back to `xdg-open`. The optional desktop launcher is installed with `chmod +x install.sh && ./install.sh`.
+MPV is used for playback on Linux when available; otherwise CineTrack falls back to `xdg-open`. The optional desktop launcher is installed with:
+
+```bash
+chmod +x install.sh && ./install.sh
+```
 
 ## Configuration and secrets
 
